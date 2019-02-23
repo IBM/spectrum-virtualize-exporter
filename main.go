@@ -145,20 +145,3 @@ func (h *handler) innerHandler(targets ...utils.Targets) (http.Handler, error) {
 	}
 	return handler, nil
 }
-
-func handlerMetricRequest(w http.ResponseWriter, r *http.Request) {
-
-	targets, err := targetsForRequest(r)
-	if err != nil {
-		http.Error(w, err.Error(), 400)
-		return
-	}
-	registry := prometheus.NewRegistry()
-	c := collector.NewSVCCollector(targets) //new a Spectrum Virtualize Collector
-	registry.MustRegister(c)
-
-	promhttp.HandlerFor(registry, promhttp.HandlerOpts{
-		ErrorLog:      log.NewErrorLogger(),
-		ErrorHandling: promhttp.ContinueOnError}).ServeHTTP(w, r)
-
-}

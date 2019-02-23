@@ -1,5 +1,5 @@
 targets:
-  - ipAddress: 172.16.192.20
-    userid: monitor
-    password: monitor4poc
+  - ipAddress: IP address
+    userid: user
+    password: password
 

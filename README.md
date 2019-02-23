@@ -38,7 +38,13 @@ Visit http://localhost:9119/metrics
 
 ## Configuration
 
-The spectrum-virtualize-exporter reads from spectrumVirtualize.yml config file by default. Edit your config YAML file, Enter the IP address of the storage device, your username, and your password there. 
+The spectrum-virtualize-exporter reads from [spectrumVirtualize.yml](https://github.ibm.com/gmxguo/spectrum-virtualize-exporter/blob/master/spectrumVirtualize.yml) config file by default. Edit your config YAML file, Enter the IP address of the storage device, your username, and your password there. 
+```
+targets:
+  - ipAddress: IP address
+    userid: user
+    password: password
+```
 
 ## Exported Metrics
 
@@ -47,8 +53,12 @@ The spectrum-virtualize-exporter reads from spectrumVirtualize.yml config file b
 | - | Metrics from the exporter itself. | [Metrics List](docs/exporter_metrics.md) |
 | lssystem | Get a detailed view of a clustered system (system). | [Metrics List](docs/lssystem_metrics.md) |
 | lssystemstats | Get the most recent values of all node statistics in a system | [Metrics List](docs/lssystemstats_metrics.md) |
-| lsnodestats | Ge the most recent values of statistics for all nodes. | [Metrics List](docs/nodestats_metrics.md)|
-
+| lsnodestats | Ge the most recent values of statistics for all nodes. | [Metrics List](docs/lsnodestats_metrics.md)|
+| lsmdisk | Get a detailed view of managed disks (MDisks) visible to the clustered system (system) | [Metrics List](docs/lsmdisk_metrics.md) |
+ lsmdiskgrp | Get a detailed view of storage pools that are visible to the clustered system (system). | [Metrics List](docs/lsmdiskgrp_metrics.md) |
+| lsvdisk | Get detailed view of volumes that are recognized by the system. | [Metrics List](docs/lsvdisk_metrics.md) |
+| lsvdiskcopy | Get volume copy information | [Metrics List](docs/lsvdiskcopy_metrics.md) |
+| - | Metrics about Capacity Usage | [Metrics List](docs/capacity_usage_metrics.md) |
 
 ## References
 

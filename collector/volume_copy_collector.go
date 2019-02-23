@@ -14,12 +14,12 @@ var (
 )
 
 func init() {
-	labelnames := []string{"target", "volume_id", "volume_name", "copy_id"}
-	volumeCopy_Capacity = prometheus.NewDesc(prefix_volumeCopy+"capacity", "The capacity of the volume copy.", labelnames, nil)
+	labelnames := []string{"target", "volume_id", "volume_name", "copy_id", "mdisk_grp_name"}
+	volumeCopy_Capacity = prometheus.NewDesc(prefix_volumeCopy+"_capacity", "The capacity of the volume copy.", labelnames, nil)
 
 }
 
-//nodeStatsCollector collects vdisk metrics
+//volumeCopyCollector collects volume cpoy metrics
 type volumeCopyCollector struct {
 }
 
@@ -36,18 +36,14 @@ func (*volumeCopyCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *volumeCopyCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-
 	log.Debugln("volume copy collector is starting")
-
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsvdiskcopy"
 	volumeCopyRes, err := sClient.CallSpectrumAPI(reqSystemURL)
 	volumeCopyArray := gjson.Parse(volumeCopyRes).Array()
-	// nodeStats_metrics = make([]*prometheus.Desc, len(nodeStatsArray), len(nodeStatsArray))
 	for _, volumeCopy := range volumeCopyArray {
-
-		volumeCopy_capacity_bytes, errors := utils.ToBytes(volumeCopy.Get("capacity").String())
-		ch <- prometheus.MustNewConstMetric(volumeCopy_Capacity, prometheus.GaugeValue, float64(volumeCopy_capacity_bytes), sClient.IpAddress, volumeCopy.Get("vdisk_id").String(), volumeCopy.Get("vdisk_name").String(), volumeCopy.Get("copy_id").String())
-		err = errors
+		volumeCopy_capacity_bytes, err := utils.ToBytes(volumeCopy.Get("capacity").String())
+		ch <- prometheus.MustNewConstMetric(volumeCopy_Capacity, prometheus.GaugeValue, float64(volumeCopy_capacity_bytes), sClient.IpAddress, volumeCopy.Get("vdisk_id").String(), volumeCopy.Get("vdisk_name").String(), volumeCopy.Get("copy_id").String(), volumeCopy.Get("mdisk_grp_name").String())
+		return err
 	}
 
 	return err

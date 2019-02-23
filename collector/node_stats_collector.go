@@ -102,28 +102,13 @@ func (*nodeStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	log.Debugln("NodeStats collector is starting")
-	// labelnames := []string{"target", "node"}
-	// labelvalues := []string{sClient.IpAddress}
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsnodestats"
 	nodeStats, err := sClient.CallSpectrumAPI(reqSystemURL)
 	nodeStatsArray := gjson.Parse(nodeStats).Array()
-	// nodeStats_metrics = make([]*prometheus.Desc, len(nodeStatsArray), len(nodeStatsArray))
-
 	for i, nodeStats_metric := range nodeStats_metrics {
 		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[i].Get("stat_current").Float(), sClient.IpAddress, nodeStatsArray[i].Get("node_name").String())
 		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("stat_current").Float(), sClient.IpAddress, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("node_name").String())
-
 	}
-
-	// for i, nodeStat := range nodeStatsArray {
-	// 	labelvalues := []string{sClient.IpAddress, nodeStat.Get("node_name").String()}
-	// 	nodeStats_metrics[i] = prometheus.NewDesc(prefix_nodeStats+nodeStat.Get("stat_name").String(), "", labelnames, nil)
-	// 	ch <- prometheus.MustNewConstMetric(nodeStats_metrics[i], prometheus.GaugeValue, nodeStat.Get("stat_current").Float(), labelvalues...)
-
-	// }
-
-	// ch <- prometheus.MustNewConstMetric(prometheus.NewDesc(prefix+"CPU_Utilization", "CPU Utilization. Here the usage is shown for these metrics:System CPU % and Compression CPU %(only when compression is enabled)", []string{"instance", "mode"}, nil), prometheus.GaugeValue, cpu_compress_current, []string{host, cpu_compress_stat_name}...)
-	// ch <- prometheus.MustNewConstMetric(prometheus.NewDesc(prefix+"CPU_Utilization", "CPU Utilization. Here the usage is shown for these metrics:System CPU % and Compression CPU %(only when compression is enabled)", []string{"instance", "mode"}, nil), prometheus.GaugeValue, cpu_system_current, []string{host, cpu_system_stat_name}...)
 	return err
 
 }
