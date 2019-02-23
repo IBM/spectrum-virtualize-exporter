@@ -47,7 +47,7 @@ The spectrum-virtualize-exporter reads from spectrumVirtualize.yml config file b
 | - | Metrics from the exporter itself. | [Metrics List](docs/exporter_metrics.md) |
 | lssystem | Get a detailed view of a clustered system (system). | [Metrics List](docs/lssystem_metrics.md) |
 | lssystemstats | Get the most recent values of all node statistics in a system | [Metrics List](docs/lssystemstats_metrics.md) |
-| lsnodestats | Ge the most recent values of statistics for all nodes. | [Metrics List](docs/nodestats_metrics.md)|
+| lsnodestats | Ge the most recent values of statistics for all nodes. | [Metrics List](docs/lsnodestats_metrics.md)|
 
 
 ## References
