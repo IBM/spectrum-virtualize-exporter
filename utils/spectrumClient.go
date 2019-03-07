@@ -106,15 +106,3 @@ func (s *SpectrumClient) CallSpectrumAPI(request string) (body string, err error
 	return body, nil
 
 }
-
-// func (s *SpectrumClient) GetSystem() {
-// 	reqSystemURL := "https://" + s.IpAddress + ":7443/rest/lssystem"
-// 	system, err := s.CallSpectrumAPI(reqSystemURL)
-
-// }
-
-// func (sClient *SpectrumClient) RetriveSystemStats() (systemStats string, err error) {
-// 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lssystemstats"
-// 	systemStats, err = sClient.CallSpectrumAPI(reqSystemURL)
-// 	return systemStats, err
-// }
