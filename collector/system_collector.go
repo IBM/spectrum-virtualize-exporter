@@ -68,6 +68,9 @@ var (
 	unmap                             *prometheus.Desc
 	enhanced_callhome                 *prometheus.Desc
 	censor_callhome                   *prometheus.Desc
+	physical_capacity_usage           *prometheus.Desc
+	volume_capacity_usage             *prometheus.Desc
+	mdiskgrp_capacity_usage           *prometheus.Desc
 )
 
 func init() {
@@ -129,6 +132,9 @@ func init() {
 	enhanced_callhome = prometheus.NewDesc(prefix_sys+"enhanced_callhome", "", []string{"target"}, nil)
 	censor_callhome = prometheus.NewDesc(prefix_sys+"censor_callhome", "", []string{"target"}, nil)
 
+	physical_capacity_usage = prometheus.NewDesc(prefix_sys+"physical_capacity_usage", "physical capacity utilization", []string{"target"}, nil)
+	volume_capacity_usage = prometheus.NewDesc(prefix_sys+"volume_capacity_usage", "volume capacity utilization", []string{"target"}, nil)
+	mdiskgrp_capacity_usage = prometheus.NewDesc(prefix_sys+"mdiskgrp_capacity_usage", "mdiskgrp capacity utilization", []string{"target"}, nil)
 }
 
 // systemCollector collects system metrics
@@ -197,6 +203,10 @@ func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- unmap
 	ch <- enhanced_callhome
 	ch <- censor_callhome
+
+	ch <- physical_capacity_usage
+	ch <- volume_capacity_usage
+	ch <- mdiskgrp_capacity_usage
 }
 
 //Collect collects metrics from Spectrum Virtualize Restful API
@@ -281,13 +291,13 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 
 	tierArray := gjson.Get(systemMetrics, "tiers").Array()
 	for _, tier := range tierArray {
-		tier_capacity_bytes, error := utils.ToBytes(tier.Get("tier_capacity").String())
+		tier_capacity_bytes, err := utils.ToBytes(tier.Get("tier_capacity").String())
 		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), sClient.IpAddress, tier.Get("tier").String())
 
-		tier_free_capacity_bytes, error := utils.ToBytes(tier.Get("tier_free_capacity").String())
+		tier_free_capacity_bytes, err := utils.ToBytes(tier.Get("tier_free_capacity").String())
 		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.IpAddress, tier.Get("tier").String())
 
-		err = error
+		return err
 	}
 
 	statistics_status_value, err := utils.ToBool(gjson.Get(systemMetrics, "statistics_status").String())
@@ -373,6 +383,15 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 
 	censor_callhome_value, err := utils.ToBool(gjson.Get(systemMetrics, "censor_callhome").String())
 	ch <- prometheus.MustNewConstMetric(censor_callhome, prometheus.GaugeValue, censor_callhome_value, labelvalues...)
+
+	physical_capacity_usage_value := (float64(physical_capacity_bytes) - float64(physical_free_capacity_bytes)) / float64(physical_capacity_bytes)
+	ch <- prometheus.MustNewConstMetric(physical_capacity_usage, prometheus.GaugeValue, physical_capacity_usage_value, labelvalues...)
+
+	volume_capacity_usage_value := float64(total_used_capacity_bytes) / float64(total_vdisk_capacity_bytes)
+	ch <- prometheus.MustNewConstMetric(volume_capacity_usage, prometheus.GaugeValue, float64(volume_capacity_usage_value), labelvalues...)
+
+	mdiskgrp_capacity_usage_value := (float64(total_mdisk_capacity_bytes) - float64(total_free_space_bytes) - float64(total_reclaimable_capacity_bytes)) / float64(total_mdisk_capacity_bytes)
+	ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity_usage, prometheus.GaugeValue, float64(mdiskgrp_capacity_usage_value), labelvalues...)
 
 	return err
 }

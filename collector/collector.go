@@ -33,19 +33,15 @@ func init() {
 
 // newSVCCollector creates a new Spectrum Virtualize Collector.
 func NewSVCCollector(targets []utils.Targets) *SVCCollector {
-	collectors := collectors()
-	// systemexporter := NewSystemCollector()
+	collectors := map[string]Collector{}
+	collectors["system"] = NewSystemCollector()
+	collectors["system_stats"] = NewSystemStatsCollector()
+	collectors["node_stats"] = NewNodeStatsCollector()
+	collectors["volume"] = NewVolumeCollector()
+	collectors["volume_copy"] = NewVolumeCopyCollector()
+	collectors["mdisk"] = NewMdiskCollector()
+	collectors["mdiskgrp"] = NewMdiskgrpCollector()
 	return &SVCCollector{targets, collectors}
-}
-
-func collectors() map[string]Collector {
-	m := map[string]Collector{}
-	m["system"] = NewSystemCollector()
-	m["system_stats"] = NewSystemStatsCollector()
-	m["node_stats"] = NewNodeStatsCollector()
-	m["node_stats"] = NewVolumeCollector()
-	m["node_stats"] = NewVolumeCopyCollector()
-	return m
 }
 
 // Describe implements the Prometheus.Collector interface.
@@ -64,10 +60,6 @@ func (c SVCCollector) Collect(ch chan<- prometheus.Metric) {
 	hosts := c.targets
 	wg := &sync.WaitGroup{}
 	wg.Add(len(hosts))
-
-	// for _, h := range hosts {
-	// 	// go c.collectForHost(strings.Trim(h, " "), ch, wg)
-	// }
 
 	for _, h := range hosts {
 		go c.collectForHost(h, ch, wg)

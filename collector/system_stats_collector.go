@@ -105,23 +105,15 @@ func (*systemStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-
 	log.Debugln("SystemStats collector is starting")
-
 	labelvalues := []string{sClient.IpAddress}
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lssystemstats"
 	systemStats, err := sClient.CallSpectrumAPI(reqSystemURL)
 	systemStatsMetrics := gjson.Parse(systemStats).Array()
-	// metrics = make([]*prometheus.Desc, len(systemStatsMetrics), len(systemStatsMetrics))
 	for i, systemStatsMetric := range systemStatsMetrics {
-
-		// metrics[i] = prometheus.NewDesc(prefix_stats+systemStatsMetric.Get("stat_name").String(), "", labelnames, nil)
 		ch <- prometheus.MustNewConstMetric(metrics[i], prometheus.GaugeValue, systemStatsMetric.Get("stat_current").Float(), labelvalues...)
 
 	}
-
-	// ch <- prometheus.MustNewConstMetric(prometheus.NewDesc(prefix+"CPU_Utilization", "CPU Utilization. Here the usage is shown for these metrics:System CPU % and Compression CPU %(only when compression is enabled)", []string{"instance", "mode"}, nil), prometheus.GaugeValue, cpu_compress_current, []string{host, cpu_compress_stat_name}...)
-	// ch <- prometheus.MustNewConstMetric(prometheus.NewDesc(prefix+"CPU_Utilization", "CPU Utilization. Here the usage is shown for these metrics:System CPU % and Compression CPU %(only when compression is enabled)", []string{"instance", "mode"}, nil), prometheus.GaugeValue, cpu_system_current, []string{host, cpu_system_stat_name}...)
 	return err
 
 }
