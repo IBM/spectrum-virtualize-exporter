@@ -12,10 +12,15 @@ import (
 const prefix = "spectrum_"
 
 var (
-	scrapeDurationDesc *prometheus.Desc
-	scrapeSuccessDesc  *prometheus.Desc
-
-	authTokenCache sync.Map
+	scrapeDurationDesc        *prometheus.Desc
+	scrapeSuccessDesc         *prometheus.Desc
+	requestErrors             *prometheus.Desc
+	authTokenCacheCounterHit  *prometheus.Desc
+	authTokenCacheCounterMiss *prometheus.Desc
+	authTokenCache            sync.Map
+	requestErrorCount         int = 0
+	authTokenMiss             int = 0
+	authTokenHit              int = 0
 )
 
 // SVCollector implements the prometheus.Collecotor interface
@@ -25,10 +30,11 @@ type SVCCollector struct {
 }
 
 func init() {
-
 	scrapeDurationDesc = prometheus.NewDesc(prefix+"collector_duration_seconds", "Duration of a collector scrape for one target", []string{"target"}, nil) // metric name, help information, Arrar of defined label names, defined labels
 	scrapeSuccessDesc = prometheus.NewDesc(prefix+"collector_success", "Scrape of target was sucessful", []string{"target"}, nil)
-
+	requestErrors = prometheus.NewDesc(prefix+"request_errors_total", "Errors in request to the Spectrum Virtualize Exporter", []string{"target"}, nil)
+	authTokenCacheCounterHit = prometheus.NewDesc(prefix+"authtoken_cache_counter_hit", "Count of authtoken cache hits", []string{"target"}, nil)
+	authTokenCacheCounterMiss = prometheus.NewDesc(prefix+"authtoken_cache_counter_miss", "Count of authtoken cache misses", []string{"target"}, nil)
 }
 
 // newSVCCollector creates a new Spectrum Virtualize Collector.
@@ -48,6 +54,9 @@ func NewSVCCollector(targets []utils.Targets) *SVCCollector {
 func (c SVCCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- scrapeSuccessDesc
 	ch <- scrapeDurationDesc
+	ch <- requestErrors
+	ch <- authTokenCacheCounterHit
+	ch <- authTokenCacheCounterMiss
 
 	for _, col := range c.collectors {
 		col.Describe(ch)
@@ -60,56 +69,79 @@ func (c SVCCollector) Collect(ch chan<- prometheus.Metric) {
 	hosts := c.targets
 	wg := &sync.WaitGroup{}
 	wg.Add(len(hosts))
-
 	for _, h := range hosts {
 		go c.collectForHost(h, ch, wg)
 	}
-
 	wg.Wait()
 }
 
 func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.Metric, wg *sync.WaitGroup) {
 	defer wg.Done()
-	l := []string{host.IpAddress}
+	labelvalue := []string{host.IpAddress}
 	start := time.Now()
-	var success float64
+	success := 0
 	spectrumClient := utils.SpectrumClient{
 		UserName:  host.Userid,
 		Password:  host.Password,
 		IpAddress: host.IpAddress,
 	}
 	defer func() {
-		ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), l...)
+		ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), labelvalue...)
+		ch <- prometheus.MustNewConstMetric(requestErrors, prometheus.CounterValue, float64(requestErrorCount), labelvalue...)
+		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterMiss, prometheus.CounterValue, float64(authTokenMiss), labelvalue...)
+		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterHit, prometheus.CounterValue, float64(authTokenHit), labelvalue...)
+		ch <- prometheus.MustNewConstMetric(scrapeSuccessDesc, prometheus.GaugeValue, float64(success), labelvalue...)
 
 	}()
-	result, ok := authTokenCache.Load(host.IpAddress)
-	if !ok {
-		log.Debug("Authtoken not found in cache.")
-		log.Debugf("Retrieving authToken for %s", host.IpAddress)
-		// get our authtoken for future interactions
-		a, err := spectrumClient.RetriveAuthToken()
-		if err != nil {
-			log.Debugf("Error getting auth token for %s", host.IpAddress)
-			success = 0
+	// Need to get rid of the goto cheat, replacing with a for loop, and ensureing it has backoff and a short circuit
+	lc := 1
+	for lc < 4 {
+		log.Debugf("Looking for cached Auth Token for %s", host.IpAddress)
+		result, ok := authTokenCache.Load(host.IpAddress)
+		if !ok {
+			log.Debug("Authtoken not found in cache.")
+			log.Debugf("Retrieving authToken for %s", host.IpAddress)
+			// get our authtoken for future interactions
+			authtoken, err := spectrumClient.RetriveAuthToken()
+			if err != nil {
+				log.Debugf("Error getting auth token for %s", host.IpAddress)
+				requestErrorCount += 1
+				success = 0
+				return
 
-		} else {
-			authTokenCache.Store(host.IpAddress, a)
+			}
+			authTokenCache.Store(host.IpAddress, authtoken)
 			result, _ := authTokenCache.Load(host.IpAddress)
 			spectrumClient.AuthToken = result.(string)
-
+			authTokenMiss += 1
+			success = 1
+		} else {
+			log.Debugf("Authtoken pulled from cache for %s", host.IpAddress)
+			spectrumClient.AuthToken = result.(string)
+			authTokenHit += 1
 			success = 1
 		}
-	} else {
-		log.Debugf("Authtoken pulled from cache for %s", host.IpAddress)
-		spectrumClient.AuthToken = result.(string)
-		success = 1
-
+		//test to make sure that our auth token is good
+		// if not delete it and loop back
+		validateURL := "https://" + host.IpAddress + ":7443/rest/lsuser"
+		_, err := spectrumClient.CallSpectrumAPI(validateURL)
+		if err != nil {
+			authTokenCache.Delete(host.IpAddress)
+			log.Debugf("Invalidating authToken for %s, re-requesting authtoken....", host.IpAddress)
+			lc += 1
+		} else {
+			//We have a valid auth token, we can break out of this loop
+			break
+		}
 	}
-
-	ch <- prometheus.MustNewConstMetric(scrapeSuccessDesc, prometheus.GaugeValue, success, l...)
-
+	if lc > 3 {
+		// looped and failed multiple times, so need to go further
+		log.Debugf("Error getting auth token for %s", host.IpAddress)
+		requestErrorCount += 1
+		success = 0
+		return
+	}
 	for k, col := range c.collectors {
-		// err = col.Collect(spectrumClient, ch, l)
 		err := col.Collect(spectrumClient, ch)
 		if err != nil && err.Error() != "EOF" {
 			log.Errorln(k + ": " + err.Error())
