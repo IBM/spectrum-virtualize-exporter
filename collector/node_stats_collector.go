@@ -14,6 +14,7 @@ var (
 )
 
 func init() {
+	registerCollector("lsnodestats", defaultDisabled, NewNodeStatsCollector)
 	labelnames := []string{"target", "node"}
 	nodeStats_metrics = [46]*prometheus.Desc{
 		prometheus.NewDesc(prefix_nodeStats+"compression_cpu_pc", "The percentage of allocated CPU capacity that is used for compression.", labelnames, nil),
@@ -79,14 +80,15 @@ func init() {
 		prometheus.NewDesc(prefix_nodeStats+"iser_mb", "The total number of megabytes transferred per second (MBps) for iSER traffic on the system.", labelnames, nil),
 		prometheus.NewDesc(prefix_nodeStats+"iser_io", "The total I/O operations that are transferred per second for iSER traffic on the system.", labelnames, nil),
 	}
+
 }
 
 //nodeStatsCollector collects nodeStats metrics
 type nodeStatsCollector struct {
 }
 
-func NewNodeStatsCollector() Collector {
-	return &nodeStatsCollector{}
+func NewNodeStatsCollector() (Collector, error) {
+	return &nodeStatsCollector{}, nil
 }
 
 //Describe describes the metrics

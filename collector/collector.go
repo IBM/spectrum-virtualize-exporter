@@ -1,15 +1,21 @@
 package collector
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"github.com/spectrum-virtualize-exporter/utils"
+	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
-const prefix = "spectrum_"
+const (
+	prefix          = "spectrum_"
+	defaultEnabled  = true
+	defaultDisabled = false
+)
 
 var (
 	scrapeDurationDesc        *prometheus.Desc
@@ -21,6 +27,8 @@ var (
 	requestErrorCount         int = 0
 	authTokenMiss             int = 0
 	authTokenHit              int = 0
+	factories                     = make(map[string]func() (Collector, error))
+	collectorState                = make(map[string]*bool)
 )
 
 // SVCollector implements the prometheus.Collecotor interface
@@ -37,17 +45,39 @@ func init() {
 	authTokenCacheCounterMiss = prometheus.NewDesc(prefix+"authtoken_cache_counter_miss", "Count of authtoken cache misses", []string{"target"}, nil)
 }
 
+func registerCollector(collector string, isDefaultEnabled bool, factory func() (Collector, error)) {
+	var helpDefaultState string
+	if isDefaultEnabled {
+		helpDefaultState = "enabled"
+	} else {
+		helpDefaultState = "disabled"
+	}
+
+	flagName := fmt.Sprintf("collector.%s", collector)
+	flagHelp := fmt.Sprintf("Enable the %s collector (default: %s).", collector, helpDefaultState)
+	defaultValue := fmt.Sprintf("%v", isDefaultEnabled)
+
+	flag := kingpin.Flag(flagName, flagHelp).Default(defaultValue).Bool()
+	collectorState[collector] = flag
+
+	factories[collector] = factory
+}
+
 // newSVCCollector creates a new Spectrum Virtualize Collector.
-func NewSVCCollector(targets []utils.Targets) *SVCCollector {
-	collectors := map[string]Collector{}
-	collectors["system"] = NewSystemCollector()
-	collectors["system_stats"] = NewSystemStatsCollector()
-	collectors["node_stats"] = NewNodeStatsCollector()
-	collectors["volume"] = NewVolumeCollector()
-	collectors["volume_copy"] = NewVolumeCopyCollector()
-	collectors["mdisk"] = NewMdiskCollector()
-	collectors["mdiskgrp"] = NewMdiskgrpCollector()
-	return &SVCCollector{targets, collectors}
+func NewSVCCollector(targets []utils.Targets) (*SVCCollector, error) {
+	collectors := make(map[string]Collector)
+	log.Infof("Enabled collectors:")
+	for key, enabled := range collectorState {
+		if *enabled {
+			log.Infof(" - %s", key)
+			collector, err := factories[key]()
+			if err != nil {
+				return nil, err
+			}
+			collectors[key] = collector
+		}
+	}
+	return &SVCCollector{targets, collectors}, nil
 }
 
 // Describe implements the Prometheus.Collector interface.

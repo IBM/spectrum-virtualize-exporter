@@ -74,6 +74,7 @@ var (
 )
 
 func init() {
+	registerCollector("lssystem", defaultEnabled, NewSystemCollector)
 	labelnames := []string{"target"}
 	total_mdisk_capacity = prometheus.NewDesc(prefix_sys+"total_mdisk_capacity", "The sum of mdiskgrp capacity plus the capacity of all unmanaged MDisks", labelnames, nil)
 	space_in_mdisk_grps = prometheus.NewDesc(prefix_sys+"space_in_mdisk_grps", "The sum of mdiskgrp capacity", labelnames, nil)
@@ -135,14 +136,15 @@ func init() {
 	physical_capacity_usage = prometheus.NewDesc(prefix_sys+"physical_capacity_usage", "physical capacity utilization", []string{"target"}, nil)
 	volume_capacity_usage = prometheus.NewDesc(prefix_sys+"volume_capacity_usage", "volume capacity utilization", []string{"target"}, nil)
 	mdiskgrp_capacity_usage = prometheus.NewDesc(prefix_sys+"mdiskgrp_capacity_usage", "mdiskgrp capacity utilization", []string{"target"}, nil)
+
 }
 
 // systemCollector collects system metrics
 type systemCollector struct {
 }
 
-func NewSystemCollector() Collector {
-	return &systemCollector{}
+func NewSystemCollector() (Collector, error) {
+	return &systemCollector{}, nil
 }
 
 //Describe describes the metrics

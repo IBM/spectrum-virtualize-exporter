@@ -11,7 +11,8 @@ This exporter collects performance and metrics stats from Spectrum Virtualize an
 | web.telemetry-path | Path under which to expose metrics | /metrics |
 | web.listen-address | Address on which to expose metrics and web interface | :9119 |
 | web.disable-exporter-metrics | Exclude metrics about the exporter itself (promhttp_*, process_*, go_*) | false
-
+| --collector.name | Collector are enabled, the name means name of CLI Command | Default enabled collectors are lssystem and lssystemstats |
+| --no-collector.name | Collectors that are enabled by default can be disabled, the name means name of CLI Command | Default disabled collectors are lsnodestats, lsmdisk, lsmdiskgrp, lsvdisk and lsvdiskcopy. |
 ## Building and running
 Prerequisites:
 * Go compiler
@@ -48,7 +49,7 @@ targets:
 
 ## Exported Metrics
 
-| CLI Command | Description | Metrics |
+| CLI Command | Description | Metrics | 
 | --- | --- | --- |
 | - | Metrics from the exporter itself. | [Metrics List](docs/exporter_metrics.md) |
 | lssystem | Get a detailed view of a clustered system (system). | [Metrics List](docs/lssystem_metrics.md) |
@@ -58,7 +59,6 @@ targets:
  lsmdiskgrp | Get a detailed view of storage pools that are visible to the clustered system (system). | [Metrics List](docs/lsmdiskgrp_metrics.md) |
 | lsvdisk | Get detailed view of volumes that are recognized by the system. | [Metrics List](docs/lsvdisk_metrics.md) |
 | lsvdiskcopy | Get volume copy information | [Metrics List](docs/lsvdiskcopy_metrics.md) |
-| - | Metrics about Capacity Usage | [Metrics List](docs/capacity_usage_metrics.md) |
 
 ## References
 
