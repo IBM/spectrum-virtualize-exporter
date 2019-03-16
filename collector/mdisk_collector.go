@@ -12,16 +12,18 @@ const prefix_mdisk = "spectrum_mdisk_"
 var mdiskCapacity *prometheus.Desc
 
 func init() {
+	registerCollector("lsmdisk", defaultDisabled, NewMdiskCollector)
 	labelnames := []string{"target", "name", "status", "mdisk_grp_name", "tier"}
 	mdiskCapacity = prometheus.NewDesc(prefix_mdisk+"capacity", "The capacity of the MDisk by pool.", labelnames, nil)
+
 }
 
 //mdiskCollector collects mdisk metrics
 type mdiskCollector struct {
 }
 
-func NewMdiskCollector() Collector {
-	return &mdiskCollector{}
+func NewMdiskCollector() (Collector, error) {
+	return &mdiskCollector{}, nil
 }
 
 //Describe describes the metrics

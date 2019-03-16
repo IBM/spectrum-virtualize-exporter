@@ -31,6 +31,7 @@ var (
 )
 
 func init() {
+	registerCollector("lsmdiskgrp", defaultDisabled, NewMdiskgrpCollector)
 	labelnames := []string{"target", "name", "status"}
 	mdiskgrp_capacity = prometheus.NewDesc(prefix_mdiskgrp+"capacity", "The total amount of MDisk storage that is assigned to the storage pool..", labelnames, nil)
 	extent_size = prometheus.NewDesc(prefix_mdiskgrp+"extent_size", "The sizes of the extents for this group", labelnames, nil)
@@ -55,8 +56,8 @@ func init() {
 type mdiskgrpCollector struct {
 }
 
-func NewMdiskgrpCollector() Collector {
-	return &mdiskgrpCollector{}
+func NewMdiskgrpCollector() (Collector, error) {
+	return &mdiskgrpCollector{}, nil
 }
 
 //Describe describes the metrics

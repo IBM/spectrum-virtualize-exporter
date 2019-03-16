@@ -123,9 +123,14 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *handler) innerHandler(targets ...utils.Targets) (http.Handler, error) {
 
 	registry := prometheus.NewRegistry()
-	c := collector.NewSVCCollector(targets) //new a Spectrum Virtualize Collector
+	sc, err := collector.NewSVCCollector(targets) //new a Spectrum Virtualize Collector
 	// registry.MustRegister(version.NewCollector("Spectrum-Virtualize-Exporter"))
-	if err := registry.Register(c); err != nil {
+
+	if err != nil {
+		log.Fatalf("Couldn't create collector: %s", err)
+	}
+
+	if err := registry.Register(sc); err != nil {
 		return nil, fmt.Errorf("couldn't register SVC collector: %s", err)
 	}
 	handler := promhttp.HandlerFor(
