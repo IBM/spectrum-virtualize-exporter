@@ -135,8 +135,10 @@ func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prom
 
 		reclaimable_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("reclaimable_capacity").String())
 		ch <- prometheus.MustNewConstMetric(reclaimable_capacity, prometheus.GaugeValue, float64(reclaimable_capacity_bytes), sClient.IpAddress, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		if err != nil {
+			return err
+		}
 
-		return err
 	}
 	return err
 

@@ -82,7 +82,7 @@ func init() {
 	total_free_space = prometheus.NewDesc(prefix_sys+"total_free_space", "The sum of mdiskgrp free_capacity", labelnames, nil)
 	total_vdiskcopy_capacity = prometheus.NewDesc(prefix_sys+"total_vdiskcopy_capacity", "The total virtual capacity of all volume copies in the cluster", labelnames, nil)
 	total_used_capacity = prometheus.NewDesc(prefix_sys+"total_used_capacity", "The sum of mdiskgrp used_capacity", labelnames, nil)
-	total_overallocation = prometheus.NewDesc(prefix_sys+"total_overallocation_pc", "The total_vdiskcopy_capacity as a percentage of total_mdisk_capacity. If total_mdisk_capacity is zero, then total_overallocation should display 100", labelnames, nil)
+	total_overallocation = prometheus.NewDesc(prefix_sys+"total_overallocation_percent", "The total_vdiskcopy_capacity as a percentage of total_mdisk_capacity. If total_mdisk_capacity is zero, then total_overallocation should display 100", labelnames, nil)
 	total_vdisk_capacity = prometheus.NewDesc(prefix_sys+"total_vdisk_capacity", "The total virtual capacity of volumes in the cluster", labelnames, nil)
 	total_allocated_extent_capacity = prometheus.NewDesc(prefix_sys+"total_allocated_extent_capacity", "The total size of all extents that are allocated to VDisks or otherwise in use by the system.", labelnames, nil)
 	compression_virtual_capacity = prometheus.NewDesc(prefix_sys+"compression_virtual_capacity", "The total virtual capacity for all compressed volume copies in non-data reduction pools. Compressed volumes that are in data reduction pools do not count towards this value. This value is in unsigned decimal format.", labelnames, nil)
@@ -133,9 +133,9 @@ func init() {
 	enhanced_callhome = prometheus.NewDesc(prefix_sys+"enhanced_callhome", "", []string{"target"}, nil)
 	censor_callhome = prometheus.NewDesc(prefix_sys+"censor_callhome", "", []string{"target"}, nil)
 
-	physical_capacity_usage = prometheus.NewDesc(prefix_sys+"physical_capacity_usage", "physical capacity utilization", []string{"target"}, nil)
-	volume_capacity_usage = prometheus.NewDesc(prefix_sys+"volume_capacity_usage", "volume capacity utilization", []string{"target"}, nil)
-	mdiskgrp_capacity_usage = prometheus.NewDesc(prefix_sys+"mdiskgrp_capacity_usage", "mdiskgrp capacity utilization", []string{"target"}, nil)
+	physical_capacity_usage = prometheus.NewDesc(prefix_sys+"physical_capacity_used_percent", "physical capacity utilization", []string{"target"}, nil)
+	volume_capacity_usage = prometheus.NewDesc(prefix_sys+"volume_capacity_used_percent", "volume capacity utilization", []string{"target"}, nil)
+	mdiskgrp_capacity_usage = prometheus.NewDesc(prefix_sys+"mdiskgrp_capacity_used_percent", "mdiskgrp capacity utilization", []string{"target"}, nil)
 
 }
 
@@ -298,8 +298,10 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 
 		tier_free_capacity_bytes, err := utils.ToBytes(tier.Get("tier_free_capacity").String())
 		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.IpAddress, tier.Get("tier").String())
+		if err != nil {
+			return err
+		}
 
-		return err
 	}
 
 	statistics_status_value, err := utils.ToBool(gjson.Get(systemMetrics, "statistics_status").String())
@@ -386,13 +388,13 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	censor_callhome_value, err := utils.ToBool(gjson.Get(systemMetrics, "censor_callhome").String())
 	ch <- prometheus.MustNewConstMetric(censor_callhome, prometheus.GaugeValue, censor_callhome_value, labelvalues...)
 
-	physical_capacity_usage_value := (float64(physical_capacity_bytes) - float64(physical_free_capacity_bytes)) / float64(physical_capacity_bytes)
+	physical_capacity_usage_value := (float64(physical_capacity_bytes) - float64(physical_free_capacity_bytes)) / float64(physical_capacity_bytes) * 100
 	ch <- prometheus.MustNewConstMetric(physical_capacity_usage, prometheus.GaugeValue, physical_capacity_usage_value, labelvalues...)
 
-	volume_capacity_usage_value := float64(total_used_capacity_bytes) / float64(total_vdisk_capacity_bytes)
+	volume_capacity_usage_value := float64(total_used_capacity_bytes) / float64(total_vdisk_capacity_bytes) * 100
 	ch <- prometheus.MustNewConstMetric(volume_capacity_usage, prometheus.GaugeValue, float64(volume_capacity_usage_value), labelvalues...)
 
-	mdiskgrp_capacity_usage_value := (float64(total_mdisk_capacity_bytes) - float64(total_free_space_bytes) - float64(total_reclaimable_capacity_bytes)) / float64(total_mdisk_capacity_bytes)
+	mdiskgrp_capacity_usage_value := (float64(total_mdisk_capacity_bytes) - float64(total_free_space_bytes) - float64(total_reclaimable_capacity_bytes)) / float64(total_mdisk_capacity_bytes) * 100
 	ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity_usage, prometheus.GaugeValue, float64(mdiskgrp_capacity_usage_value), labelvalues...)
 
 	return err
