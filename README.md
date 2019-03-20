@@ -21,36 +21,43 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 
 ## Building and running
 
-Prerequisites:
-* Go compiler
+* Prerequisites:
+  * Go compiler
 
-Building:
-* binary
-  ```
-  go build
-  ```
+* Building:
+  
+  * binary
+    ```
+    export GOPATH=your_gopath
+    cd your_gopath
+    mkdir src
+    cd src
+    mkdir github.com
+    cd github.com
+    git clone git@github.ibm.com:genctl/fleetman-workspace.git
+    go build
+    ```
+  * docker image
+    ```
+    docker build -t spectrum-virtualize-exporter .
+    ```
 
-* docker image
-  ```
-  docker build -t spectrum-virtualize-exporter .
-  ```
+* Running:
+  * Run Locally
+    ```
+    ./spectrum-virtualize-exporter --config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml
+    ```
 
-Running:
-* binary
-  ```
-  ./spectrum-virtualize-exporter --config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml
-  ```
+  * Run as docker image
+    ```
+    docker run -it -d -p 9119:9119 -v /etc/spectrumVirtualize/spectrumVirtualize.yml:/etc/spectrumVirtualize/spectrumVirtualize.yml --name spectrum-virtualize-exporter spectrum-virtualize-exporter --config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml --log.level debug --restart always
+    ```
 
-* docker image
-  ```
-  docker run -it -d -p 9119:9119 -v /etc/spectrumVirtualize/spectrumVirtualize.yml:/etc/spectrumVirtualize/spectrumVirtualize.yml --name spectrum-virtualize-exporter spectrum-virtualize-exporter --config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml --log.level debug --restart always
-  ```
-
-Visit http://localhost:9119/metrics
+  * Visit http://localhost:9119/metrics
 
 ## Configuration
 
-The spectrum-virtualize-exporter reads from [spectrumVirtualize.yml](https://github.ibm.com/gmxguo/spectrum-virtualize-exporter/blob/master/spectrumVirtualize.yml) config file by default. Edit your config YAML file, Enter the IP address of the storage device, your username, and your password there. 
+The spectrum-virtualize-exporter reads from [spectrumVirtualize.yml](spectrumVirtualize.yml) config file by default. Edit your config YAML file, Enter the IP address of the storage device, your username, and your password there. 
 ```
 targets:
   - ipAddress: IP address
