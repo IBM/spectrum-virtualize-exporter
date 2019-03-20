@@ -43,7 +43,9 @@ func (c *volumeCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	for _, volume := range volumeArray {
 		capacity_bytes, err := utils.ToBytes(volume.Get("capacity").String())
 		ch <- prometheus.MustNewConstMetric(volumeCapacity, prometheus.GaugeValue, float64(capacity_bytes), sClient.IpAddress, volume.Get("volume_id").String(), volume.Get("volume_name").String(), volume.Get("mdisk_grp_name").String())
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	return err
