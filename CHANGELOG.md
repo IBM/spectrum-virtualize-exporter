@@ -6,7 +6,7 @@
 
 ### Changes
 
-* [BUGFIX]
+* [BUGFIX] Fix value of Capacity Usage metrics from decimal to percent.
 
 ## 0.4.0 / 2019-03-16
 
