@@ -7,6 +7,7 @@
 ### Changes
 
 * [BUGFIX] Fix value of Capacity Usage metrics from decimal to percent.
+* [BUGFIX] Fix issue of showing always the "Enabled collectors" logs
 
 ## 0.4.0 / 2019-03-16
 
