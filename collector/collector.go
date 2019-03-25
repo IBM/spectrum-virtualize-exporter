@@ -34,7 +34,7 @@ var (
 // SVCollector implements the prometheus.Collecotor interface
 type SVCCollector struct {
 	targets    []utils.Targets
-	collectors map[string]Collector
+	Collectors map[string]Collector
 }
 
 func init() {
@@ -66,10 +66,10 @@ func registerCollector(collector string, isDefaultEnabled bool, factory func() (
 // newSVCCollector creates a new Spectrum Virtualize Collector.
 func NewSVCCollector(targets []utils.Targets) (*SVCCollector, error) {
 	collectors := make(map[string]Collector)
-	log.Infof("Enabled collectors:")
+	// log.Infof("Enabled collectors:")
 	for key, enabled := range collectorState {
 		if *enabled {
-			log.Infof(" - %s", key)
+			// log.Infof(" - %s", key)
 			collector, err := factories[key]()
 			if err != nil {
 				return nil, err
@@ -88,7 +88,7 @@ func (c SVCCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- authTokenCacheCounterHit
 	ch <- authTokenCacheCounterMiss
 
-	for _, col := range c.collectors {
+	for _, col := range c.Collectors {
 		col.Describe(ch)
 	}
 }
@@ -171,7 +171,7 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 		success = 0
 		return
 	}
-	for k, col := range c.collectors {
+	for k, col := range c.Collectors {
 		err := col.Collect(spectrumClient, ch)
 		if err != nil && err.Error() != "EOF" {
 			log.Errorln(k + ": " + err.Error())

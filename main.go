@@ -20,7 +20,8 @@ var (
 	listenAddress          = kingpin.Flag("web.listen-address", "Address on which to expose metrics and web interface.").Default(":9119").String()
 	disableExporterMetrics = kingpin.Flag("web.disable-exporter-metrics", "Exclude metrics about the exporter itself (promhttp_*, process_*, go_*).").Bool()
 	// maxRequests            = kingpin.Flag("web.max-requests", "Maximum number of parallel scrape requests. Use 0 to disable.").Default("40").Int()
-	cfg *utils.Config
+	cfg             *utils.Config
+	enableCollector bool = true
 )
 
 type handler struct {
@@ -128,6 +129,13 @@ func (h *handler) innerHandler(targets ...utils.Targets) (http.Handler, error) {
 
 	if err != nil {
 		log.Fatalf("Couldn't create collector: %s", err)
+	}
+	if enableCollector == true {
+		log.Infof("Enabled collectors:")
+		for n := range sc.Collectors {
+			log.Infof(" - %s", n)
+		}
+		enableCollector = false
 	}
 
 	if err := registry.Register(sc); err != nil {
