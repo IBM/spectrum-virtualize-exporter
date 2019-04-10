@@ -34,7 +34,8 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
     cd src
     mkdir github.com
     cd github.com
-    git clone git@github.ibm.com:genctl/fleetman-workspace.git
+    git clone git@github.ibm.com:ZaaS/spectrum-virtualize-exporter.git
+    cd spectrum-virtualize-exporter
     go build
     ```
   * docker image
