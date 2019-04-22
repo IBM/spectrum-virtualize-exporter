@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"github.com/spectrum-virtualize-exporter/utils"
+	"github.com/tidwall/gjson"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
@@ -107,7 +108,6 @@ func (c SVCCollector) Collect(ch chan<- prometheus.Metric) {
 
 func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.Metric, wg *sync.WaitGroup) {
 	defer wg.Done()
-	labelvalue := []string{host.IpAddress}
 	start := time.Now()
 	success := 0
 	spectrumClient := utils.SpectrumClient{
@@ -116,11 +116,11 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 		IpAddress: host.IpAddress,
 	}
 	defer func() {
-		ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), labelvalue...)
-		ch <- prometheus.MustNewConstMetric(requestErrors, prometheus.CounterValue, float64(requestErrorCount), labelvalue...)
-		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterMiss, prometheus.CounterValue, float64(authTokenMiss), labelvalue...)
-		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterHit, prometheus.CounterValue, float64(authTokenHit), labelvalue...)
-		ch <- prometheus.MustNewConstMetric(scrapeSuccessDesc, prometheus.GaugeValue, float64(success), labelvalue...)
+		ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(requestErrors, prometheus.CounterValue, float64(requestErrorCount), spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterMiss, prometheus.CounterValue, float64(authTokenMiss), spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterHit, prometheus.CounterValue, float64(authTokenHit), spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(scrapeSuccessDesc, prometheus.GaugeValue, float64(success), spectrumClient.Hostname)
 
 	}()
 	// Need to get rid of the goto cheat, replacing with a for loop, and ensureing it has backoff and a short circuit
@@ -153,13 +153,14 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 		}
 		//test to make sure that our auth token is good
 		// if not delete it and loop back
-		validateURL := "https://" + host.IpAddress + ":7443/rest/lsuser"
-		_, err := spectrumClient.CallSpectrumAPI(validateURL)
+		validateURL := "https://" + host.IpAddress + ":7443/rest/lssystem"
+		systemMetrics, err := spectrumClient.CallSpectrumAPI(validateURL)
 		if err != nil {
 			authTokenCache.Delete(host.IpAddress)
 			log.Debugf("Invalidating authToken for %s, re-requesting authtoken....", host.IpAddress)
 			lc += 1
 		} else {
+			spectrumClient.Hostname = gjson.Get(systemMetrics, "name").String()
 			//We have a valid auth token, we can break out of this loop
 			break
 		}
@@ -177,6 +178,7 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 			log.Errorln(k + ": " + err.Error())
 		}
 	}
+
 }
 
 // Collector is the interface a collector has to implement.
