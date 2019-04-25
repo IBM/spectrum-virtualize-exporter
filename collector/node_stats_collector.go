@@ -15,7 +15,7 @@ var (
 
 func init() {
 	registerCollector("lsnodestats", defaultDisabled, NewNodeStatsCollector)
-	labelnames := []string{"target", "node"}
+	labelnames := []string{"resource", "node"}
 	nodeStats_metrics = [46]*prometheus.Desc{
 		prometheus.NewDesc(prefix_nodeStats+"compression_cpu_pc", "The percentage of allocated CPU capacity that is used for compression.", labelnames, nil),
 		prometheus.NewDesc(prefix_nodeStats+"cpu_pc", "The percentage of allocated CPU capacity that is used for the system.", labelnames, nil),

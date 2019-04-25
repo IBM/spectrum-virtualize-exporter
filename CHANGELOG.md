@@ -9,7 +9,7 @@
 * [BUGFIX] Fix value of Capacity Usage metrics from decimal to percent.
 * [BUGFIX] Fix issue of showing always the "Enabled collectors" logs
 * [CHANGE] Add the column of 'Total number of metrics' to 'Exported Metrics' table
-
+* [CHANGE] Change the label name from 'target' to 'resource'
 ## 0.4.0 / 2019-03-16
 
 ### **Breaking changes**
