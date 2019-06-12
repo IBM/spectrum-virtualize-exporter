@@ -71,6 +71,7 @@ var (
 	physical_capacity_usage           *prometheus.Desc
 	volume_capacity_usage             *prometheus.Desc
 	mdiskgrp_capacity_usage           *prometheus.Desc
+	hostname                          string
 )
 
 func init() {
@@ -104,38 +105,38 @@ func init() {
 	tier_capacity = prometheus.NewDesc(prefix_sys+"tier_capacity", "The total MDisk storage in the tier.", []string{"target", "tier"}, nil)
 	tier_free_capacity = prometheus.NewDesc(prefix_sys+"tier_free_capacity", "The amount of MDisk storage in the tier that is unused.", []string{"target", "tier"}, nil)
 
-	statistics_status = prometheus.NewDesc(prefix_sys+"statistics_status", "", []string{"target"}, nil)
-	statistics_frequency = prometheus.NewDesc(prefix_sys+"statistics_frequency", "", []string{"target"}, nil)
-	gm_link_tolerance = prometheus.NewDesc(prefix_sys+"gm_link_tolerance", "", []string{"target"}, nil)
-	gm_inter_cluster_delay_simulation = prometheus.NewDesc(prefix_sys+"gm_inter_cluster_delay_simulation", "", []string{"target"}, nil)
-	gm_intra_cluster_dalay_simulation = prometheus.NewDesc(prefix_sys+"gm_intra_cluster_dalay_simulation", "", []string{"target"}, nil)
-	gm_max_host_delay = prometheus.NewDesc(prefix_sys+"gm_max_host_delay", "", []string{"target"}, nil)
-	inventory_mail_interval = prometheus.NewDesc(prefix_sys+"inventory_mail_interval", "", []string{"target"}, nil)
-	auth_service_configured = prometheus.NewDesc(prefix_sys+"auth_service_configured", "", []string{"target"}, nil)
-	auth_service_enabled = prometheus.NewDesc(prefix_sys+"auth_service_enabled", "", []string{"target"}, nil)
-	auth_service_pwd_set = prometheus.NewDesc(prefix_sys+"auth_service_pwd_set", "", []string{"target"}, nil)
-	auth_service_cert_set = prometheus.NewDesc(prefix_sys+"auth_service_cert_set", "", []string{"target"}, nil)
-	relationship_bandwidth_limit = prometheus.NewDesc(prefix_sys+"relationship_bandwidth_limit", "", []string{"target"}, nil)
-	easy_tier_acceleration = prometheus.NewDesc(prefix_sys+"easy_tier_acceleration", "", []string{"target"}, nil)
-	has_nas_key = prometheus.NewDesc(prefix_sys+"has_nas_key", "", []string{"target"}, nil)
-	rc_buffer_size = prometheus.NewDesc(prefix_sys+"rc_buffer_size", "", []string{"target"}, nil)
-	compression_active = prometheus.NewDesc(prefix_sys+"compression_active", "", []string{"target"}, nil)
-	cache_prefetch = prometheus.NewDesc(prefix_sys+"cache_prefetch", "", []string{"target"}, nil)
-	compression_destage_mode = prometheus.NewDesc(prefix_sys+"compression_destage_mode", "", []string{"target"}, nil)
-	high_temp_mode = prometheus.NewDesc(prefix_sys+"high_temp_mode", "", []string{"target"}, nil)
-	vdisk_protection_time = prometheus.NewDesc(prefix_sys+"vdisk_protection_time", "", []string{"target"}, nil)
-	vdisk_protection_enabled = prometheus.NewDesc(prefix_sys+"vdisk_protection_enabled", "", []string{"target"}, nil)
-	odx = prometheus.NewDesc(prefix_sys+"odx", "", []string{"target"}, nil)
-	max_replication_delay = prometheus.NewDesc(prefix_sys+"max_replication_delay", "", []string{"target"}, nil)
-	partnership_exclusion_threshold = prometheus.NewDesc(prefix_sys+"partnership_exclusion_threshold", "", []string{"target"}, nil)
-	gen1_compatibility_mode_enabled = prometheus.NewDesc(prefix_sys+"gen1_compatibility_mode_enabled", "", []string{"target"}, nil)
-	unmap = prometheus.NewDesc(prefix_sys+"unmap", "", []string{"target"}, nil)
-	enhanced_callhome = prometheus.NewDesc(prefix_sys+"enhanced_callhome", "", []string{"target"}, nil)
-	censor_callhome = prometheus.NewDesc(prefix_sys+"censor_callhome", "", []string{"target"}, nil)
+	statistics_status = prometheus.NewDesc(prefix_sys+"statistics_status", "", labelnames, nil)
+	statistics_frequency = prometheus.NewDesc(prefix_sys+"statistics_frequency", "", labelnames, nil)
+	gm_link_tolerance = prometheus.NewDesc(prefix_sys+"gm_link_tolerance", "", labelnames, nil)
+	gm_inter_cluster_delay_simulation = prometheus.NewDesc(prefix_sys+"gm_inter_cluster_delay_simulation", "", labelnames, nil)
+	gm_intra_cluster_dalay_simulation = prometheus.NewDesc(prefix_sys+"gm_intra_cluster_dalay_simulation", "", labelnames, nil)
+	gm_max_host_delay = prometheus.NewDesc(prefix_sys+"gm_max_host_delay", "", labelnames, nil)
+	inventory_mail_interval = prometheus.NewDesc(prefix_sys+"inventory_mail_interval", "", labelnames, nil)
+	auth_service_configured = prometheus.NewDesc(prefix_sys+"auth_service_configured", "", labelnames, nil)
+	auth_service_enabled = prometheus.NewDesc(prefix_sys+"auth_service_enabled", "", labelnames, nil)
+	auth_service_pwd_set = prometheus.NewDesc(prefix_sys+"auth_service_pwd_set", "", labelnames, nil)
+	auth_service_cert_set = prometheus.NewDesc(prefix_sys+"auth_service_cert_set", "", labelnames, nil)
+	relationship_bandwidth_limit = prometheus.NewDesc(prefix_sys+"relationship_bandwidth_limit", "", labelnames, nil)
+	easy_tier_acceleration = prometheus.NewDesc(prefix_sys+"easy_tier_acceleration", "", labelnames, nil)
+	has_nas_key = prometheus.NewDesc(prefix_sys+"has_nas_key", "", labelnames, nil)
+	rc_buffer_size = prometheus.NewDesc(prefix_sys+"rc_buffer_size", "", labelnames, nil)
+	compression_active = prometheus.NewDesc(prefix_sys+"compression_active", "", labelnames, nil)
+	cache_prefetch = prometheus.NewDesc(prefix_sys+"cache_prefetch", "", labelnames, nil)
+	compression_destage_mode = prometheus.NewDesc(prefix_sys+"compression_destage_mode", "", labelnames, nil)
+	high_temp_mode = prometheus.NewDesc(prefix_sys+"high_temp_mode", "", labelnames, nil)
+	vdisk_protection_time = prometheus.NewDesc(prefix_sys+"vdisk_protection_time", "", labelnames, nil)
+	vdisk_protection_enabled = prometheus.NewDesc(prefix_sys+"vdisk_protection_enabled", "", labelnames, nil)
+	odx = prometheus.NewDesc(prefix_sys+"odx", "", labelnames, nil)
+	max_replication_delay = prometheus.NewDesc(prefix_sys+"max_replication_delay", "", labelnames, nil)
+	partnership_exclusion_threshold = prometheus.NewDesc(prefix_sys+"partnership_exclusion_threshold", "", labelnames, nil)
+	gen1_compatibility_mode_enabled = prometheus.NewDesc(prefix_sys+"gen1_compatibility_mode_enabled", "", labelnames, nil)
+	unmap = prometheus.NewDesc(prefix_sys+"unmap", "", labelnames, nil)
+	enhanced_callhome = prometheus.NewDesc(prefix_sys+"enhanced_callhome", "", labelnames, nil)
+	censor_callhome = prometheus.NewDesc(prefix_sys+"censor_callhome", "", labelnames, nil)
 
-	physical_capacity_usage = prometheus.NewDesc(prefix_sys+"physical_capacity_used_percent", "physical capacity utilization", []string{"target"}, nil)
-	volume_capacity_usage = prometheus.NewDesc(prefix_sys+"volume_capacity_used_percent", "volume capacity utilization", []string{"target"}, nil)
-	mdiskgrp_capacity_usage = prometheus.NewDesc(prefix_sys+"mdiskgrp_capacity_used_percent", "mdiskgrp capacity utilization", []string{"target"}, nil)
+	physical_capacity_usage = prometheus.NewDesc(prefix_sys+"physical_capacity_used_percent", "physical capacity utilization", labelnames, nil)
+	volume_capacity_usage = prometheus.NewDesc(prefix_sys+"volume_capacity_used_percent", "volume capacity utilization", labelnames, nil)
+	mdiskgrp_capacity_usage = prometheus.NewDesc(prefix_sys+"mdiskgrp_capacity_used_percent", "mdiskgrp capacity utilization", labelnames, nil)
 
 }
 
@@ -214,7 +215,8 @@ func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	log.Debugln("System collector is starting")
-	labelvalues := []string{sClient.IpAddress}
+	// labelvalues := []string{sClient.IpAddress}
+	labelvalues := []string{sClient.Hostname}
 
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lssystem"
 	systemMetrics, _ := sClient.CallSpectrumAPI(reqSystemURL)
@@ -294,10 +296,10 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	tierArray := gjson.Get(systemMetrics, "tiers").Array()
 	for _, tier := range tierArray {
 		tier_capacity_bytes, err := utils.ToBytes(tier.Get("tier_capacity").String())
-		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), sClient.IpAddress, tier.Get("tier").String())
+		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), sClient.Hostname, tier.Get("tier").String())
 
 		tier_free_capacity_bytes, err := utils.ToBytes(tier.Get("tier_free_capacity").String())
-		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.IpAddress, tier.Get("tier").String())
+		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.Hostname, tier.Get("tier").String())
 		if err != nil {
 			return err
 		}

@@ -18,6 +18,7 @@ type SpectrumClient struct {
 	AuthToken  string
 	IpAddress  string
 	ErrorCount float64
+	Hostname   string
 }
 
 func (s *SpectrumClient) RetriveAuthToken() (authToken string, err error) {
