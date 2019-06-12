@@ -15,7 +15,7 @@ var (
 
 func init() {
 	registerCollector("lsvdisk", defaultDisabled, NewVolumeCollector)
-	labelnames := []string{"target", "volume_id", "volume_name", "mdisk_grp_name"}
+	labelnames := []string{"resource", "volume_id", "volume_name", "mdisk_grp_name"}
 	volumeCapacity = prometheus.NewDesc(prefix_volume+"capacity", "The virtual capacity of the volume that is the size of the volume as seen by the host.", labelnames, nil)
 }
 

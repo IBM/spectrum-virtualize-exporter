@@ -10,7 +10,7 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 
 ## Usage
 
-| Flag | Description | Default Value |
+| Flag | Description | Default Value | 
 | --- | --- | --- |
 | config.file | Path to configuration file | spectrumVirtualize.yml |
 | web.telemetry-path | Path under which to expose metrics | /metrics |
@@ -68,16 +68,16 @@ targets:
 
 ## Exported Metrics
 
-| CLI Command | Description | Default | Metrics |
-| --- | --- | --- | --- |
-| - | Metrics from the exporter itself. | Enabled | [List](docs/exporter_metrics.md) |
-| lssystem | Get a detailed view of a clustered system (system). | Enabled | [List](docs/lssystem_metrics.md) |
-| lssystemstats | Get the most recent values of all node statistics in a system. | Enabled | [List](docs/lssystemstats_metrics.md) |
-| lsnodestats | Ge the most recent values of statistics for all nodes. | Disabled | [List](docs/lsnodestats_metrics.md)|
-| lsmdisk | Get a detailed view of managed disks (MDisks) visible to the clustered system. | Disabled | [List](docs/lsmdisk_metrics.md) |
-| lsmdiskgrp | Get a detailed view of storage pools that are visible to the clustered system. | Disabled | [List](docs/lsmdiskgrp_metrics.md) |
-| lsvdisk | Get detailed view of volumes that are recognized by the system. | Disabled | [List](docs/lsvdisk_metrics.md) |
-| lsvdiskcopy | Get volume copy information. | Disabled | [List](docs/lsvdiskcopy_metrics.md) |
+| CLI Command | Description | Default | Metrics | Total number of metrics |
+| --- | --- | --- | --- | --- |
+| - | Metrics from the exporter itself. | Enabled | [List](docs/exporter_metrics.md) | 35 |
+| lssystem | Get a detailed view of a clustered system (system). | Enabled | [List](docs/lssystem_metrics.md) | 57 |
+| lssystemstats | Get the most recent values of all node statistics in a system. | Enabled | [List](docs/lssystemstats_metrics.md) | 49 |
+| lsnodestats | Ge the most recent values of statistics for all nodes. | Disabled | [List](docs/lsnodestats_metrics.md)| 46 |
+| lsmdisk | Get a detailed view of managed disks (MDisks) visible to the clustered system. | Disabled | [List](docs/lsmdisk_metrics.md) | 1 |
+| lsmdiskgrp | Get a detailed view of storage pools that are visible to the clustered system. | Disabled | [List](docs/lsmdiskgrp_metrics.md) | 16 |
+| lsvdisk | Get detailed view of volumes that are recognized by the system. | Disabled | [List](docs/lsvdisk_metrics.md) | 1 |
+| lsvdiskcopy | Get volume copy information. | Disabled | [List](docs/lsvdiskcopy_metrics.md) | 1 |
 
 ## References
 

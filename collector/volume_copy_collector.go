@@ -15,7 +15,7 @@ var (
 
 func init() {
 	registerCollector("lsvdiskcopy", defaultDisabled, NewVolumeCopyCollector)
-	labelnames := []string{"target", "volume_id", "volume_name", "copy_id", "mdisk_grp_name"}
+	labelnames := []string{"resource", "volume_id", "volume_name", "copy_id", "mdisk_grp_name"}
 	volumeCopy_Capacity = prometheus.NewDesc(prefix_volumeCopy+"_capacity", "The capacity of the volume copy.", labelnames, nil)
 
 }

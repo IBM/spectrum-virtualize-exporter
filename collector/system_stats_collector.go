@@ -19,7 +19,7 @@ type systemStatsCollector struct {
 
 func init() {
 	registerCollector("lssystemstats", defaultEnabled, NewSystemStatsCollector)
-	labelnames := []string{"target"}
+	labelnames := []string{"resource"}
 	metrics = [49]*prometheus.Desc{
 		prometheus.NewDesc(prefix_stats+"compression_cpu_pc", "The percentage of allocated CPU capacity that is used for compression.", labelnames, nil),
 		prometheus.NewDesc(prefix_stats+"cpu_pc", "The percentage of allocated CPU capacity that is used for the system.", labelnames, nil),

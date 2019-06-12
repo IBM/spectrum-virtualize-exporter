@@ -1,10 +1,10 @@
 ### Exporter Metrics
 
 ```
-# HELP spectrum_collector_duration_seconds Duration of a collector scrape for one target
+# HELP spectrum_collector_duration_seconds Duration of a collector scrape for one resource
 # TYPE spectrum_collector_duration_seconds gauge
 
-# HELP spectrum_collector_success Scrape of target was sucessful
+# HELP spectrum_collector_success Scrape of resource was sucessful
 # TYPE spectrum_collector_success gauge
 
 # HELP spectrum_authtoken_cache_counter_hit Count of authtoken cache hits

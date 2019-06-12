@@ -32,7 +32,7 @@ var (
 
 func init() {
 	registerCollector("lsmdiskgrp", defaultDisabled, NewMdiskgrpCollector)
-	labelnames := []string{"target", "name", "status"}
+	labelnames := []string{"resource", "name", "status"}
 	mdiskgrp_capacity = prometheus.NewDesc(prefix_mdiskgrp+"capacity", "The total amount of MDisk storage that is assigned to the storage pool..", labelnames, nil)
 	extent_size = prometheus.NewDesc(prefix_mdiskgrp+"extent_size", "The sizes of the extents for this group", labelnames, nil)
 	free_capacity = prometheus.NewDesc(prefix_mdiskgrp+"free_capacity", "The amount of MDisk storage that is immediately available. Additionally, reclaimable_capacity can eventually become available", labelnames, nil)

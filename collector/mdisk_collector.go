@@ -13,7 +13,7 @@ var mdiskCapacity *prometheus.Desc
 
 func init() {
 	registerCollector("lsmdisk", defaultDisabled, NewMdiskCollector)
-	labelnames := []string{"target", "name", "status", "mdisk_grp_name", "tier"}
+	labelnames := []string{"resource", "name", "status", "mdisk_grp_name", "tier"}
 	mdiskCapacity = prometheus.NewDesc(prefix_mdisk+"capacity", "The capacity of the MDisk by pool.", labelnames, nil)
 
 }
