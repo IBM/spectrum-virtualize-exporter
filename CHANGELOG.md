@@ -1,8 +1,8 @@
-## master / unreleased
+## 0.5.0 / 2019-06-15
 
 ### **Breaking changes**
 
-* Change the label 'target' from ip to hostname
+* [CHANGE] Change the label 'target' from ip to hostname
 
 ### Changes
 
@@ -10,6 +10,7 @@
 * [BUGFIX] Fix issue of showing always the "Enabled collectors" logs
 * [CHANGE] Add the column of 'Total number of metrics' to 'Exported Metrics' table
 * [CHANGE] Change the label name from 'target' to 'resource'
+
 ## 0.4.0 / 2019-03-16
 
 ### **Breaking changes**
