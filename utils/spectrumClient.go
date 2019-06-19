@@ -101,7 +101,7 @@ func (s *SpectrumClient) CallSpectrumAPI(request string) (body string, err error
 	respbody, err := ioutil.ReadAll(resp.Body)
 	body = string(respbody)
 	if resp.StatusCode != 200 {
-		log.Infof("Got error code: %v when accessing URL: %s\n Body text is: %s\n", resp.StatusCode, request, respbody)
+		log.Debugf("Got error code: %v when accessing URL: %s\n Body text is: %s\n", resp.StatusCode, request, respbody)
 		return "", fmt.Errorf("error connecting to : %v. the error was: %v", request, resp.StatusCode)
 	}
 	return body, nil
