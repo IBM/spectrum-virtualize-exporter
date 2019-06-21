@@ -1,15 +1,19 @@
+## 0.6.0 / 2019-06-21
+
+* [CHANGE] Change type of token log form INFO to DEBUG.
+
 ## 0.5.0 / 2019-06-15
 
 ### **Breaking changes**
 
-* [CHANGE] Change the label 'target' from ip to hostname
+* [CHANGE] Change the label 'target' from ip to hostname.
 
 ### Changes
 
 * [BUGFIX] Fix value of Capacity Usage metrics from decimal to percent.
-* [BUGFIX] Fix issue of showing always the "Enabled collectors" logs
-* [CHANGE] Add the column of 'Total number of metrics' to 'Exported Metrics' table
-* [CHANGE] Change the label name from 'target' to 'resource'
+* [BUGFIX] Fix issue of showing always the "Enabled collectors" logs.
+* [CHANGE] Add the column of 'Total number of metrics' to 'Exported Metrics' table.
+* [CHANGE] Change the label name from 'target' to 'resource'.
 
 ## 0.4.0 / 2019-03-16
 
@@ -17,7 +21,7 @@
 
 * [CHANGE] By default following collectors are disabled: lsnodestats, lsmdisk,
            lsmdiskgrp, lsvdisk and lsvdiskcopy. Following collectors are
-           enabled by default: lssystem and lssystemstats
+           enabled by default: lssystem and lssystemstats.
 
 ### Changes
 
@@ -33,7 +37,7 @@
 * [FEATURE] Add lsmdiskgrp collector.
 * [FEATURE] Add lsvdisk collector.
 * [FEATURE] Add lsvdiskgrp collector.
-* [Feature] Add capacity usage metrics
+* [Feature] Add capacity usage metrics.
 
 ## 0.1.0 / 2019-03-14
 * [CLEANUP] Introduced semantic versioning and changelog. From now on,
