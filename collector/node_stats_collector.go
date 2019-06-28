@@ -15,7 +15,7 @@ var (
 
 func init() {
 	registerCollector("lsnodestats", defaultDisabled, NewNodeStatsCollector)
-	labelnames := []string{"resource", "node"}
+	labelnames := []string{"target", "resource", "node"}
 	nodeStats_metrics = [46]*prometheus.Desc{
 		prometheus.NewDesc(prefix_nodeStats+"compression_cpu_pc", "The percentage of allocated CPU capacity that is used for compression.", labelnames, nil),
 		prometheus.NewDesc(prefix_nodeStats+"cpu_pc", "The percentage of allocated CPU capacity that is used for the system.", labelnames, nil),
@@ -108,8 +108,8 @@ func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- pro
 	nodeStats, err := sClient.CallSpectrumAPI(reqSystemURL)
 	nodeStatsArray := gjson.Parse(nodeStats).Array()
 	for i, nodeStats_metric := range nodeStats_metrics {
-		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[i].Get("stat_current").Float(), sClient.Hostname, nodeStatsArray[i].Get("node_name").String())
-		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("stat_current").Float(), sClient.Hostname, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("node_name").String())
+		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[i].Get("stat_current").Float(), sClient.IpAddress, sClient.Hostname, nodeStatsArray[i].Get("node_name").String())
+		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("stat_current").Float(), sClient.IpAddress, sClient.Hostname, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("node_name").String())
 	}
 	return err
 

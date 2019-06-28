@@ -15,7 +15,7 @@ var (
 
 func init() {
 	registerCollector("lsvdiskcopy", defaultDisabled, NewVolumeCopyCollector)
-	labelnames := []string{"resource", "volume_id", "volume_name", "copy_id", "mdisk_grp_name"}
+	labelnames := []string{"target", "resource", "volume_id", "volume_name", "copy_id", "mdisk_grp_name"}
 	volumeCopy_Capacity = prometheus.NewDesc(prefix_volumeCopy+"_capacity", "The capacity of the volume copy.", labelnames, nil)
 
 }
@@ -43,7 +43,7 @@ func (c *volumeCopyCollector) Collect(sClient utils.SpectrumClient, ch chan<- pr
 	volumeCopyArray := gjson.Parse(volumeCopyRes).Array()
 	for _, volumeCopy := range volumeCopyArray {
 		volumeCopy_capacity_bytes, err := utils.ToBytes(volumeCopy.Get("capacity").String())
-		ch <- prometheus.MustNewConstMetric(volumeCopy_Capacity, prometheus.GaugeValue, float64(volumeCopy_capacity_bytes), sClient.Hostname, volumeCopy.Get("vdisk_id").String(), volumeCopy.Get("vdisk_name").String(), volumeCopy.Get("copy_id").String(), volumeCopy.Get("mdisk_grp_name").String())
+		ch <- prometheus.MustNewConstMetric(volumeCopy_Capacity, prometheus.GaugeValue, float64(volumeCopy_capacity_bytes), sClient.IpAddress, sClient.Hostname, volumeCopy.Get("vdisk_id").String(), volumeCopy.Get("vdisk_name").String(), volumeCopy.Get("copy_id").String(), volumeCopy.Get("mdisk_grp_name").String())
 		if err != nil {
 			return err
 		}

@@ -39,11 +39,11 @@ type SVCCollector struct {
 }
 
 func init() {
-	scrapeDurationDesc = prometheus.NewDesc(prefix+"collector_duration_seconds", "Duration of a collector scrape for one resource", []string{"resource"}, nil) // metric name, help information, Arrar of defined label names, defined labels
-	scrapeSuccessDesc = prometheus.NewDesc(prefix+"collector_success", "Scrape of resource was sucessful", []string{"resource"}, nil)
-	requestErrors = prometheus.NewDesc(prefix+"request_errors_total", "Errors in request to the Spectrum Virtualize Exporter", []string{"resource"}, nil)
-	authTokenCacheCounterHit = prometheus.NewDesc(prefix+"authtoken_cache_counter_hit", "Count of authtoken cache hits", []string{"resource"}, nil)
-	authTokenCacheCounterMiss = prometheus.NewDesc(prefix+"authtoken_cache_counter_miss", "Count of authtoken cache misses", []string{"resource"}, nil)
+	scrapeDurationDesc = prometheus.NewDesc(prefix+"collector_duration_seconds", "Duration of a collector scrape for one resource", []string{"target", "resource"}, nil) // metric name, help information, Arrar of defined label names, defined labels
+	scrapeSuccessDesc = prometheus.NewDesc(prefix+"collector_success", "Scrape of resource was sucessful", []string{"target", "resource"}, nil)
+	requestErrors = prometheus.NewDesc(prefix+"request_errors_total", "Errors in request to the Spectrum Virtualize Exporter", []string{"target", "resource"}, nil)
+	authTokenCacheCounterHit = prometheus.NewDesc(prefix+"authtoken_cache_counter_hit", "Count of authtoken cache hits", []string{"target", "resource"}, nil)
+	authTokenCacheCounterMiss = prometheus.NewDesc(prefix+"authtoken_cache_counter_miss", "Count of authtoken cache misses", []string{"target", "resource"}, nil)
 }
 
 func registerCollector(collector string, isDefaultEnabled bool, factory func() (Collector, error)) {
@@ -116,11 +116,11 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 		IpAddress: host.IpAddress,
 	}
 	defer func() {
-		ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), spectrumClient.Hostname)
-		ch <- prometheus.MustNewConstMetric(requestErrors, prometheus.CounterValue, float64(requestErrorCount), spectrumClient.Hostname)
-		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterMiss, prometheus.CounterValue, float64(authTokenMiss), spectrumClient.Hostname)
-		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterHit, prometheus.CounterValue, float64(authTokenHit), spectrumClient.Hostname)
-		ch <- prometheus.MustNewConstMetric(scrapeSuccessDesc, prometheus.GaugeValue, float64(success), spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), spectrumClient.IpAddress, spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(requestErrors, prometheus.CounterValue, float64(requestErrorCount), spectrumClient.IpAddress, spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterMiss, prometheus.CounterValue, float64(authTokenMiss), spectrumClient.IpAddress, spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(authTokenCacheCounterHit, prometheus.CounterValue, float64(authTokenHit), spectrumClient.IpAddress, spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(scrapeSuccessDesc, prometheus.GaugeValue, float64(success), spectrumClient.IpAddress, spectrumClient.Hostname)
 
 	}()
 	// Need to get rid of the goto cheat, replacing with a for loop, and ensureing it has backoff and a short circuit

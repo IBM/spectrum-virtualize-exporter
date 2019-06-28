@@ -76,7 +76,7 @@ var (
 
 func init() {
 	registerCollector("lssystem", defaultEnabled, NewSystemCollector)
-	labelnames := []string{"resource"}
+	labelnames := []string{"target", "resource"}
 	total_mdisk_capacity = prometheus.NewDesc(prefix_sys+"total_mdisk_capacity", "The sum of mdiskgrp capacity plus the capacity of all unmanaged MDisks", labelnames, nil)
 	space_in_mdisk_grps = prometheus.NewDesc(prefix_sys+"space_in_mdisk_grps", "The sum of mdiskgrp capacity", labelnames, nil)
 	space_allocated_to_vdisks = prometheus.NewDesc(prefix_sys+"space_allocated_to_vdisks", "The sum of mdiskgrp real_capacity", labelnames, nil)
@@ -102,8 +102,8 @@ func init() {
 	overhead_capacity = prometheus.NewDesc(prefix_sys+"overhead_capacity", "The overhead capacity consumption in all storage pools that is not attributed to data.", labelnames, nil)
 	deduplication_capacity_saving = prometheus.NewDesc(prefix_sys+"deduplication_capacity_saving", "The total amount of used capacity that is saved by data deduplication. This saving is before any compression.", labelnames, nil)
 
-	tier_capacity = prometheus.NewDesc(prefix_sys+"tier_capacity", "The total MDisk storage in the tier.", []string{"resource", "tier"}, nil)
-	tier_free_capacity = prometheus.NewDesc(prefix_sys+"tier_free_capacity", "The amount of MDisk storage in the tier that is unused.", []string{"resource", "tier"}, nil)
+	tier_capacity = prometheus.NewDesc(prefix_sys+"tier_capacity", "The total MDisk storage in the tier.", []string{"target", "resource", "tier"}, nil)
+	tier_free_capacity = prometheus.NewDesc(prefix_sys+"tier_free_capacity", "The amount of MDisk storage in the tier that is unused.", []string{"target", "resource", "tier"}, nil)
 
 	statistics_status = prometheus.NewDesc(prefix_sys+"statistics_status", "", labelnames, nil)
 	statistics_frequency = prometheus.NewDesc(prefix_sys+"statistics_frequency", "", labelnames, nil)
@@ -216,7 +216,7 @@ func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	log.Debugln("System collector is starting")
 	// labelvalues := []string{sClient.IpAddress}
-	labelvalues := []string{sClient.Hostname}
+	labelvalues := []string{sClient.IpAddress, sClient.Hostname}
 
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lssystem"
 	systemMetrics, _ := sClient.CallSpectrumAPI(reqSystemURL)
@@ -296,10 +296,10 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	tierArray := gjson.Get(systemMetrics, "tiers").Array()
 	for _, tier := range tierArray {
 		tier_capacity_bytes, err := utils.ToBytes(tier.Get("tier_capacity").String())
-		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), sClient.Hostname, tier.Get("tier").String())
+		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), sClient.IpAddress, sClient.Hostname, tier.Get("tier").String())
 
 		tier_free_capacity_bytes, err := utils.ToBytes(tier.Get("tier_free_capacity").String())
-		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.Hostname, tier.Get("tier").String())
+		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.IpAddress, sClient.Hostname, tier.Get("tier").String())
 		if err != nil {
 			return err
 		}
