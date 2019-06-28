@@ -15,7 +15,7 @@ var (
 
 func init() {
 	registerCollector("lsvdisk", defaultDisabled, NewVolumeCollector)
-	labelnames := []string{"resource", "volume_id", "volume_name", "mdisk_grp_name"}
+	labelnames := []string{"target", "resource", "volume_id", "volume_name", "mdisk_grp_name"}
 	volumeCapacity = prometheus.NewDesc(prefix_volume+"capacity", "The virtual capacity of the volume that is the size of the volume as seen by the host.", labelnames, nil)
 }
 
@@ -42,7 +42,7 @@ func (c *volumeCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	volumeArray := gjson.Parse(volumeRes).Array()
 	for _, volume := range volumeArray {
 		capacity_bytes, err := utils.ToBytes(volume.Get("capacity").String())
-		ch <- prometheus.MustNewConstMetric(volumeCapacity, prometheus.GaugeValue, float64(capacity_bytes), sClient.Hostname, volume.Get("volume_id").String(), volume.Get("volume_name").String(), volume.Get("mdisk_grp_name").String())
+		ch <- prometheus.MustNewConstMetric(volumeCapacity, prometheus.GaugeValue, float64(capacity_bytes), sClient.IpAddress, sClient.Hostname, volume.Get("volume_id").String(), volume.Get("volume_name").String(), volume.Get("mdisk_grp_name").String())
 		if err != nil {
 			return err
 		}

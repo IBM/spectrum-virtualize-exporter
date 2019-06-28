@@ -32,7 +32,7 @@ var (
 
 func init() {
 	registerCollector("lsmdiskgrp", defaultDisabled, NewMdiskgrpCollector)
-	labelnames := []string{"resource", "name", "status"}
+	labelnames := []string{"target", "resource", "name", "status"}
 	mdiskgrp_capacity = prometheus.NewDesc(prefix_mdiskgrp+"capacity", "The total amount of MDisk storage that is assigned to the storage pool..", labelnames, nil)
 	extent_size = prometheus.NewDesc(prefix_mdiskgrp+"extent_size", "The sizes of the extents for this group", labelnames, nil)
 	free_capacity = prometheus.NewDesc(prefix_mdiskgrp+"free_capacity", "The amount of MDisk storage that is immediately available. Additionally, reclaimable_capacity can eventually become available", labelnames, nil)
@@ -89,52 +89,52 @@ func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prom
 	mDiskGrpArray := gjson.Parse(mDiskGrpRes).Array()
 	for _, mdiskgrp := range mDiskGrpArray {
 		mdiskgrp_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("capacity").String())
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity, prometheus.GaugeValue, float64(mdiskgrp_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity, prometheus.GaugeValue, float64(mdiskgrp_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		extent_size_bytes, err := utils.ToBytes(mdiskgrp.Get("extent_size").String() + "MB")
-		ch <- prometheus.MustNewConstMetric(extent_size, prometheus.GaugeValue, float64(extent_size_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(extent_size, prometheus.GaugeValue, float64(extent_size_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		free_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("free_capacity").String())
-		ch <- prometheus.MustNewConstMetric(free_capacity, prometheus.GaugeValue, float64(free_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(free_capacity, prometheus.GaugeValue, float64(free_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		virtual_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("virtual_capacity").String())
-		ch <- prometheus.MustNewConstMetric(virtual_capacity, prometheus.GaugeValue, float64(virtual_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(virtual_capacity, prometheus.GaugeValue, float64(virtual_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		used_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("used_capacity").String())
-		ch <- prometheus.MustNewConstMetric(used_capacity, prometheus.GaugeValue, float64(used_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(used_capacity, prometheus.GaugeValue, float64(used_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		real_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("real_capacity").String())
-		ch <- prometheus.MustNewConstMetric(real_capacity, prometheus.GaugeValue, float64(real_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(real_capacity, prometheus.GaugeValue, float64(real_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		overallocation_pc, err := strconv.ParseFloat(mdiskgrp.Get("overallocation").String(), 64)
-		ch <- prometheus.MustNewConstMetric(overallocation, prometheus.GaugeValue, float64(overallocation_pc), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(overallocation, prometheus.GaugeValue, float64(overallocation_pc), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		mdiskgrp_compression_active_value, err := utils.ToBool(mdiskgrp.Get("compression_active").String())
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_active, prometheus.GaugeValue, mdiskgrp_compression_active_value, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_active, prometheus.GaugeValue, mdiskgrp_compression_active_value, sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		mdiskgrp_compression_virtual_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("compression_virtual_capacity").String())
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_virtual_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_virtual_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_virtual_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_virtual_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		mdiskgrp_compression_compressed_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("compression_compressed_capacity").String())
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_compressed_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_compressed_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_compressed_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_compressed_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		mdiskgrp_compression_uncompressed_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("compression_uncompressed_capacity").String())
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_uncompressed_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_uncompressed_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_uncompressed_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_uncompressed_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		mdiskgrp_used_capacity_before_reduction_bytes, err := utils.ToBytes(mdiskgrp.Get("used_capacity_before_reduction").String())
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_used_capacity_before_reduction, prometheus.GaugeValue, float64(mdiskgrp_used_capacity_before_reduction_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_used_capacity_before_reduction, prometheus.GaugeValue, float64(mdiskgrp_used_capacity_before_reduction_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		mdiskgrp_used_capacity_after_reduction_bytes, err := utils.ToBytes(mdiskgrp.Get("used_capacity_after_reduction").String())
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_used_capacity_after_reduction, prometheus.GaugeValue, float64(mdiskgrp_used_capacity_after_reduction_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_used_capacity_after_reduction, prometheus.GaugeValue, float64(mdiskgrp_used_capacity_after_reduction_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		mdiskgrp_overhead_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("overhead_capacity").String())
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_overhead_capacity, prometheus.GaugeValue, float64(mdiskgrp_overhead_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_overhead_capacity, prometheus.GaugeValue, float64(mdiskgrp_overhead_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		mdiskgrp_deduplication_capcacity_saving_bytes, err := utils.ToBytes(mdiskgrp.Get("deduplication_capacity_saving").String())
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_deduplication_capcacity_saving, prometheus.GaugeValue, float64(mdiskgrp_deduplication_capcacity_saving_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_deduplication_capcacity_saving, prometheus.GaugeValue, float64(mdiskgrp_deduplication_capcacity_saving_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 
 		reclaimable_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("reclaimable_capacity").String())
-		ch <- prometheus.MustNewConstMetric(reclaimable_capacity, prometheus.GaugeValue, float64(reclaimable_capacity_bytes), sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(reclaimable_capacity, prometheus.GaugeValue, float64(reclaimable_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
 		if err != nil {
 			return err
 		}

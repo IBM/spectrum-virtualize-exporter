@@ -19,7 +19,7 @@ type systemStatsCollector struct {
 
 func init() {
 	registerCollector("lssystemstats", defaultEnabled, NewSystemStatsCollector)
-	labelnames := []string{"resource"}
+	labelnames := []string{"target", "resource"}
 	metrics = [49]*prometheus.Desc{
 		prometheus.NewDesc(prefix_stats+"compression_cpu_pc", "The percentage of allocated CPU capacity that is used for compression.", labelnames, nil),
 		prometheus.NewDesc(prefix_stats+"cpu_pc", "The percentage of allocated CPU capacity that is used for the system.", labelnames, nil),
@@ -106,7 +106,7 @@ func (*systemStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	log.Debugln("SystemStats collector is starting")
-	labelvalues := []string{sClient.Hostname}
+	labelvalues := []string{sClient.IpAddress, sClient.Hostname}
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lssystemstats"
 	systemStats, err := sClient.CallSpectrumAPI(reqSystemURL)
 	systemStatsMetrics := gjson.Parse(systemStats).Array()
