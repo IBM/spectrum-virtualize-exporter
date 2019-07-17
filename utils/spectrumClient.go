@@ -55,16 +55,14 @@ func (s *SpectrumClient) RetriveAuthToken() (authToken string, err error) {
 
 	if resp.StatusCode != 200 {
 		// we didnt get a good response code, so bailing out
-		log.Infoln("Got a non 200 response code: ", resp.StatusCode)
+		log.Errorln("Got a non 200 response code: ", resp.StatusCode)
 		log.Debugln("response was: ", resp)
 		s.ErrorCount++
 		return "", fmt.Errorf("received non 200 error code: %v. the response was: %v", resp.Status, resp)
 	}
 	respbody, err := ioutil.ReadAll(resp.Body)
 	body := string(respbody)
-
 	authToken = gjson.Get(body, "token").String()
-
 	log.Debugf("AuthToken is: %v", authToken)
 	return authToken, err
 
@@ -94,15 +92,15 @@ func (s *SpectrumClient) CallSpectrumAPI(request string) (body string, err error
 	req.Header.Add("X-Auth-Token", s.AuthToken)
 	resp, err := httpclient.Do(req)
 	if err != nil {
-		log.Infof("\n - Error connecting to Spectrum: %s", err)
-		return "", fmt.Errorf("error connecting to : %v. the error was: %v", request, err)
+		log.Debugf("\n - Error connecting to Spectrum: %s", err)
+		return "", fmt.Errorf("\nError connecting to : %v. the error was: %v", request, err)
 	}
 	defer resp.Body.Close()
 	respbody, err := ioutil.ReadAll(resp.Body)
 	body = string(respbody)
 	if resp.StatusCode != 200 {
-		log.Debugf("Got error code: %v when accessing URL: %s\n Body text is: %s\n", resp.StatusCode, request, respbody)
-		return "", fmt.Errorf("error connecting to : %v. the error was: %v", request, resp.StatusCode)
+		log.Debugf("\nGot error code: %v when accessing URL: %s\n Body text is: %s\n", resp.StatusCode, request, respbody)
+		return "", fmt.Errorf("\nGot error code: %v when accessing URL: %s\n Body text is: %s", resp.StatusCode, request, respbody)
 	}
 	return body, nil
 

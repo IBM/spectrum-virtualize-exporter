@@ -103,14 +103,75 @@ func (*nodeStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("NodeStats collector is starting")
+	log.Debugln("Entering NodeStats collector ...")
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsnodestats"
-	nodeStats, err := sClient.CallSpectrumAPI(reqSystemURL)
-	nodeStatsArray := gjson.Parse(nodeStats).Array()
+	nodeStatsResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	if err != nil {
+		log.Errorf("Executing lsnodestats cmd failed: %s", err)
+	}
+	log.Debugln("Response of lsnodestats: ", nodeStatsResp)
+	// This is a sample output of lsnodestats
+	// [
+	// {
+	//     "node_id": "1",
+	//     "node_name": "node1",
+	//     "stat_name": "compression_cpu_pc",
+	//     "stat_current": "0",
+	//     "stat_peak": "0",
+	//     "stat_peak_time": "181217083654"
+	// },
+	// {
+	//     "node_id": "1",
+	//     "node_name": "node1",
+	//     "stat_name": "cpu_pc",
+	//     "stat_current": "1",
+	//     "stat_peak": "1",
+	//     "stat_peak_time": "181217083654"
+	// },
+	// {
+	//     "node_id": "1",
+	//     "node_name": "node1",
+	//     "stat_name": "fc_mb",
+	//     "stat_current": "0",
+	//     "stat_peak": "0",
+	//     "stat_peak_time": "181217083654"
+	// },
+	// ....
+	// ....
+	// {
+	//     "node_id": "2",
+	//     "node_name": "node2",
+	//     "stat_name": "mdisk_io",
+	//     "stat_current": "0",
+	//     "stat_peak": "0",
+	//     "stat_peak_time": "181217083656"
+	// },
+	// {
+	//     "node_id": "2",
+	//     "node_name": "node2",
+	//     "stat_name": "mdisk_ms",
+	//     "stat_current": "0",
+	//     "stat_peak": "0",
+	//     "stat_peak_time": "181217083656"
+	// },
+	// {
+	//     "node_id": "2",
+	//     "node_name": "node2",
+	//     "stat_name": "drive_mb",
+	//     "stat_current": "232",
+	//     "stat_peak": "422",
+	//     "stat_peak_time": "181217083651"
+	// }
+	// ....
+	// ....
+	// ]
+
+	nodeStatsArray := gjson.Parse(nodeStatsResp).Array()
 	for i, nodeStats_metric := range nodeStats_metrics {
 		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[i].Get("stat_current").Float(), sClient.IpAddress, sClient.Hostname, nodeStatsArray[i].Get("node_name").String())
 		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("stat_current").Float(), sClient.IpAddress, sClient.Hostname, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("node_name").String())
 	}
+	log.Debugln("Leaving NodeStats collector.")
 	return err
 
 }

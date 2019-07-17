@@ -37,18 +37,45 @@ func (*volumeCopyCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *volumeCopyCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	log.Debugln("volume copy collector is starting")
+	log.Debugln("Entering volumeCopy collector ...")
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsvdiskcopy"
-	volumeCopyRes, err := sClient.CallSpectrumAPI(reqSystemURL)
-	volumeCopyArray := gjson.Parse(volumeCopyRes).Array()
+	volumeCopyResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	if err != nil {
+		log.Errorf("Executing lsvdiskcopy cmd failed: %s", err)
+	}
+	log.Debugln("Response of lsvdiskcopy: ", volumeCopyResp)
+	// This is a sample output of lsvdiskcopy
+	// [
+	// {
+	//     "vdisk_id": "0",
+	//     "vdisk_name": "MGMT1_MGMT1-boot",
+	//     "copy_id": "0",
+	//     "status": "online",
+	//     "sync": "yes",
+	//     "primary": "yes",
+	//     "mdisk_grp_id": "0",
+	//     "mdisk_grp_name": "Pool0",
+	//     "capacity": "128.00GB",
+	//     "type": "striped",
+	//     "se_copy": "no",
+	//     "easy_tier": "on",
+	//     "easy_tier_status": "balanced",
+	//     "compressed_copy": "no",
+	//     "parent_mdisk_grp_id": "0",
+	//     "parent_mdisk_grp_name": "Pool0",
+	//     "encrypt": "no",
+	//     "deduplicated_copy": "no"
+	// }
+	// ]
+	volumeCopyArray := gjson.Parse(volumeCopyResp).Array()
 	for _, volumeCopy := range volumeCopyArray {
 		volumeCopy_capacity_bytes, err := utils.ToBytes(volumeCopy.Get("capacity").String())
-		ch <- prometheus.MustNewConstMetric(volumeCopy_Capacity, prometheus.GaugeValue, float64(volumeCopy_capacity_bytes), sClient.IpAddress, sClient.Hostname, volumeCopy.Get("vdisk_id").String(), volumeCopy.Get("vdisk_name").String(), volumeCopy.Get("copy_id").String(), volumeCopy.Get("mdisk_grp_name").String())
 		if err != nil {
-			return err
+			log.Errorf("Converting capacity unit failed: %s", err)
 		}
+		ch <- prometheus.MustNewConstMetric(volumeCopy_Capacity, prometheus.GaugeValue, float64(volumeCopy_capacity_bytes), sClient.IpAddress, sClient.Hostname, volumeCopy.Get("vdisk_id").String(), volumeCopy.Get("vdisk_name").String(), volumeCopy.Get("copy_id").String(), volumeCopy.Get("mdisk_grp_name").String())
 	}
-
+	log.Debugln("Leaving volumeCopy collector.")
 	return err
 
 }

@@ -1,3 +1,4 @@
+* [Enhance] Enhance err logging and response examples
 * [FEATURE] Add 'target' label, its value is ipaddress
 
 ## 0.6.0 / 2019-06-21
