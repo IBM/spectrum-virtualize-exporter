@@ -1,5 +1,6 @@
-* [Fix] Fix formulas of volume usage.
-* [Enhance] Enhance err logging and response examples
+## 0.8.0 / 2019-07-30
+* [BUGFIX] Fix formulas of volume usage.
+* [FEATURE] Enhance error logging and response examples
 
 ## 0.7.0 / 2019-06-28
 * [FEATURE] Add 'target' label, its value is ipaddress
