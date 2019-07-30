@@ -1,4 +1,4 @@
-
+* [Fix] Fix formulas of volume usage.
 * [Enhance] Enhance err logging and response examples
 
 ## 0.7.0 / 2019-06-28
