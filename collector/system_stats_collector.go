@@ -105,15 +105,44 @@ func (*systemStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	log.Debugln("SystemStats collector is starting")
+	log.Debugln("Entering SystemStats collector ...")
 	labelvalues := []string{sClient.IpAddress, sClient.Hostname}
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lssystemstats"
-	systemStats, err := sClient.CallSpectrumAPI(reqSystemURL)
-	systemStatsMetrics := gjson.Parse(systemStats).Array()
-	for i, systemStatsMetric := range systemStatsMetrics {
-		ch <- prometheus.MustNewConstMetric(metrics[i], prometheus.GaugeValue, systemStatsMetric.Get("stat_current").Float(), labelvalues...)
+	systemStatsResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	if err != nil {
+		log.Errorf("Executing lssystemstats cmd failed: %s", err)
+	}
+	log.Debugln("Response of lssystemstats: ", systemStatsResp)
+	// This is a sample output of lssystemstats
+	// 	[
+	//     {
+	//         "stat_name": "compression_cpu_pc",
+	//         "stat_current": "0",
+	//         "stat_peak": "0",
+	//         "stat_peak_time": "181217033223"
+	//     },
+	//     {
+	//         "stat_name": "cpu_pc",
+	//         "stat_current": "1",
+	//         "stat_peak": "1",
+	//         "stat_peak_time": "181217033223"
+	//     },
+	//     {
+	//         "stat_name": "fc_mb",
+	//         "stat_current": "0",
+	//         "stat_peak": "0",
+	//         "stat_peak_time": "181217033223"
+	//     },
+	//     .......
+	//     .........
+	// ]
+
+	systemStats := gjson.Parse(systemStatsResp).Array()
+	for i, systemStat := range systemStats {
+		ch <- prometheus.MustNewConstMetric(metrics[i], prometheus.GaugeValue, systemStat.Get("stat_current").Float(), labelvalues...)
 
 	}
+	log.Debugln("Leaving SystemStats collector.")
 	return err
 
 }

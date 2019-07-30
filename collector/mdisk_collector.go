@@ -34,18 +34,46 @@ func (*mdiskCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *mdiskCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("MDisk collector is starting")
+	log.Debugln("Entering MDisk collector ...")
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsmdisk"
-	mDiskRes, err := sClient.CallSpectrumAPI(reqSystemURL)
-	mDiskArray := gjson.Parse(mDiskRes).Array()
-	for _, mdisk := range mDiskArray {
+	mDiskResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	if err != nil {
+		log.Errorf("Executing lsmdisk cmd failed: %s", err)
+	}
+	log.Debugln("Response of lsmdisk: ", mDiskResp)
+	//This is a sample output of lsmdisk
+	// 	[
+	//     {
+	//         "id": "0",
+	//         "name": "mdisk0",
+	//         "status": "online",
+	//         "mode": "array",
+	//         "mdisk_grp_id": "0",
+	//         "mdisk_grp_name": "Pool0",
+	//         "capacity": "99.1TB",
+	//         "ctrl_LUN_#": "",
+	//         "controller_name": "",
+	//         "UID": "",
+	//         "tier": "tier0_flash",
+	//         "encrypt": "no",
+	//         "site_id": "",
+	//         "site_name": "",
+	//         "distributed": "yes",
+	//         "dedupe": "no",
+	//         "over_provisioned": "yes",
+	//         "supports_unmap": "yes"
+	//     }
+	// ]
+	mDisks := gjson.Parse(mDiskResp).Array()
+	for _, mdisk := range mDisks {
 		capacity_bytes, err := utils.ToBytes(mdisk.Get("capacity").String())
-		ch <- prometheus.MustNewConstMetric(mdiskCapacity, prometheus.GaugeValue, float64(capacity_bytes), sClient.IpAddress, sClient.Hostname, mdisk.Get("name").String(), mdisk.Get("status").String(), mdisk.Get("mdisk_grp_name").String(), mdisk.Get("tier").String())
 		if err != nil {
-			return err
+			log.Errorf("Converting capacity unit failed: %s", err)
 		}
+		ch <- prometheus.MustNewConstMetric(mdiskCapacity, prometheus.GaugeValue, float64(capacity_bytes), sClient.IpAddress, sClient.Hostname, mdisk.Get("name").String(), mdisk.Get("status").String(), mdisk.Get("mdisk_grp_name").String(), mdisk.Get("tier").String())
 
 	}
+	log.Debugln("Leaving MDisk collector.")
 	return err
 
 }

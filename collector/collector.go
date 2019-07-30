@@ -134,8 +134,8 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 			// get our authtoken for future interactions
 			authtoken, err := spectrumClient.RetriveAuthToken()
 			if err != nil {
-				log.Debugf("Error getting auth token for %s", host.IpAddress)
-				requestErrorCount += 1
+				log.Errorf("Error getting auth token for %s, the error was %v.", host.IpAddress, err)
+				requestErrorCount++
 				success = 0
 				return
 
@@ -143,12 +143,12 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 			authTokenCache.Store(host.IpAddress, authtoken)
 			result, _ := authTokenCache.Load(host.IpAddress)
 			spectrumClient.AuthToken = result.(string)
-			authTokenMiss += 1
+			authTokenMiss++
 			success = 1
 		} else {
 			log.Debugf("Authtoken pulled from cache for %s", host.IpAddress)
 			spectrumClient.AuthToken = result.(string)
-			authTokenHit += 1
+			authTokenHit++
 			success = 1
 		}
 		//test to make sure that our auth token is good
@@ -157,8 +157,8 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 		systemMetrics, err := spectrumClient.CallSpectrumAPI(validateURL)
 		if err != nil {
 			authTokenCache.Delete(host.IpAddress)
-			log.Debugf("Invalidating authToken for %s, re-requesting authtoken....", host.IpAddress)
-			lc += 1
+			log.Infof("\nInvalidating authToken for %s, re-requesting authtoken....", host.IpAddress)
+			lc++
 		} else {
 			spectrumClient.Hostname = gjson.Get(systemMetrics, "name").String()
 			//We have a valid auth token, we can break out of this loop
@@ -167,8 +167,8 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 	}
 	if lc > 3 {
 		// looped and failed multiple times, so need to go further
-		log.Debugf("Error getting auth token for %s", host.IpAddress)
-		requestErrorCount += 1
+		log.Errorf("Error getting auth token for %s, please check network or username and password", host.IpAddress)
+		requestErrorCount++
 		success = 0
 		return
 	}

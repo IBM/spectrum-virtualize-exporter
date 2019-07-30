@@ -1,5 +1,7 @@
-## 0.7.0 / 2019-06-28
 
+* [Enhance] Enhance err logging and response examples
+
+## 0.7.0 / 2019-06-28
 * [FEATURE] Add 'target' label, its value is ipaddress
 
 ## 0.6.0 / 2019-06-21

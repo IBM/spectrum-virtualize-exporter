@@ -65,7 +65,6 @@ var (
 	max_replication_delay             *prometheus.Desc
 	partnership_exclusion_threshold   *prometheus.Desc
 	gen1_compatibility_mode_enabled   *prometheus.Desc
-	unmap                             *prometheus.Desc
 	enhanced_callhome                 *prometheus.Desc
 	censor_callhome                   *prometheus.Desc
 	physical_capacity_usage           *prometheus.Desc
@@ -130,7 +129,6 @@ func init() {
 	max_replication_delay = prometheus.NewDesc(prefix_sys+"max_replication_delay", "", labelnames, nil)
 	partnership_exclusion_threshold = prometheus.NewDesc(prefix_sys+"partnership_exclusion_threshold", "", labelnames, nil)
 	gen1_compatibility_mode_enabled = prometheus.NewDesc(prefix_sys+"gen1_compatibility_mode_enabled", "", labelnames, nil)
-	unmap = prometheus.NewDesc(prefix_sys+"unmap", "", labelnames, nil)
 	enhanced_callhome = prometheus.NewDesc(prefix_sys+"enhanced_callhome", "", labelnames, nil)
 	censor_callhome = prometheus.NewDesc(prefix_sys+"censor_callhome", "", labelnames, nil)
 
@@ -203,7 +201,6 @@ func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- max_replication_delay
 	ch <- partnership_exclusion_threshold
 	ch <- gen1_compatibility_mode_enabled
-	ch <- unmap
 	ch <- enhanced_callhome
 	ch <- censor_callhome
 
@@ -214,99 +211,297 @@ func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	log.Debugln("System collector is starting")
+	log.Debugln("Entring System collector ...")
 	// labelvalues := []string{sClient.IpAddress}
 	labelvalues := []string{sClient.IpAddress, sClient.Hostname}
-
 	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lssystem"
-	systemMetrics, _ := sClient.CallSpectrumAPI(reqSystemURL)
+	systemMetrics, err := sClient.CallSpectrumAPI(reqSystemURL)
+	// This is a sample output of lssystem
+	// {
+	// 	"id": "0000020420400752",
+	// 	"name": "SARA",
+	// 	"location": "local",
+	// 	"partnership": "",
+	// 	"total_mdisk_capacity": "99.0TB",
+	// 	"space_in_mdisk_grps": "99.0TB",
+	// 	"space_allocated_to_vdisks": "558.02GB",
+	// 	"total_free_space": "98.5TB",
+	// 	"total_vdiskcopy_capacity": "656.00GB",
+	// 	"total_used_capacity": "556.00GB",
+	// 	"total_overallocation": "0",
+	// 	"total_vdisk_capacity": "656.00GB",
+	// 	"total_allocated_extent_capacity": "559.00GB",
+	// 	"statistics_status": "on",
+	// 	"statistics_frequency": "15",
+	// 	"cluster_locale": "en_US",
+	// 	"time_zone": "410 GMT",
+	// 	"code_level": "8.2.0.2 (build 145.23.1811141325000)",
+	// 	"console_IP": "172.16.192.20:443",
+	// 	"id_alias": "0000020420400752",
+	// 	"gm_link_tolerance": "300",
+	// 	"gm_inter_cluster_delay_simulation": "0",
+	// 	"gm_intra_cluster_delay_simulation": "0",
+	// 	"gm_max_host_delay": "5",
+	// 	"email_reply": "japaige@us.ibm.com",
+	// 	"email_contact": "Jamal Paige",
+	// 	"email_contact_primary": "404-858-4039",
+	// 	"email_contact_alternate": "919-667-3850",
+	// 	"email_contact_location": "AZ3 wdc04-05",
+	// 	"email_contact2": "",
+	// 	"email_contact2_primary": "",
+	// 	"email_contact2_alternate": "",
+	// 	"email_state": "stopped",
+	// 	"inventory_mail_interval": "1",
+	// 	"cluster_ntp_IP_address": "172.16.192.15",
+	// 	"cluster_isns_IP_address": "",
+	// 	"iscsi_auth_method": "none",
+	// 	"iscsi_chap_secret": "",
+	// 	"auth_service_configured": "no",
+	// 	"auth_service_enabled": "no",
+	// 	"auth_service_url": "",
+	// 	"auth_service_user_name": "",
+	// 	"auth_service_pwd_set": "no",
+	// 	"auth_service_cert_set": "no",
+	// 	"auth_service_type": "tip",
+	// 	"relationship_bandwidth_limit": "25",
+	// 	"tiers": [
+	// 		{
+	// 			"tier": "tier0_flash",
+	// 			"tier_capacity": "99.01TB",
+	// 			"tier_free_capacity": "98.46TB"
+	// 		},
+	// 		{
+	// 			"tier": "tier1_flash",
+	// 			"tier_capacity": "0.00MB",
+	// 			"tier_free_capacity": "0.00MB"
+	// 		},
+	// 		{
+	// 			"tier": "tier_enterprise",
+	// 			"tier_capacity": "0.00MB",
+	// 			"tier_free_capacity": "0.00MB"
+	// 		},
+	// 		{
+	// 			"tier": "tier_nearline",
+	// 			"tier_capacity": "0.00MB",
+	// 			"tier_free_capacity": "0.00MB"
+	// 		}
+	// 	],
+	// 	"easy_tier_acceleration": "off",
+	// 	"has_nas_key": "no",
+	// 	"layer": "storage",
+	// 	"rc_buffer_size": "48",
+	// 	"compression_active": "no",
+	// 	"compression_virtual_capacity": "0.00MB",
+	// 	"compression_compressed_capacity": "0.00MB",
+	// 	"compression_uncompressed_capacity": "0.00MB",
+	// 	"cache_prefetch": "on",
+	// 	"email_organization": "IBM Blockchain",
+	// 	"email_machine_address": "44060 Digital Loundoun Plaza",
+	// 	"email_machine_city": "Ashburn",
+	// 	"email_machine_state": "VA",
+	// 	"email_machine_zip": "20147",
+	// 	"email_machine_country": "US",
+	// 	"total_drive_raw_capacity": "0",
+	// 	"compression_destage_mode": "off",
+	// 	"local_fc_port_mask": "1111111111111111111111111111111111111111111111111111111111111111",
+	// 	"partner_fc_port_mask":        "1111111111111111111111111111111111111111111111111111111111111111",
+	// 	"high_temp_mode": "off",
+	// 	"topology": "standard",
+	// 	"topology_status": "",
+	// 	"rc_auth_method": "none",
+	// 	"vdisk_protection_time": "15",
+	// 	"vdisk_protection_enabled": "no",
+	// 	"product_name": "IBM FlashSystem 9100",
+	// 	"odx": "off",
+	// 	"max_replication_delay": "0",
+	// 	"partnership_exclusion_threshold": "315",
+	// 	"gen1_compatibility_mode_enabled": "no",
+	// 	"ibm_customer": "",
+	// 	"ibm_component": "",
+	// 	"ibm_country": "",
+	// 	"tier0_flash_compressed_data_used": "0.00MB",
+	// 	"tier1_flash_compressed_data_used": "0.00MB",
+	// 	"tier_enterprise_compressed_data_used": "0.00MB",
+	// 	"tier_nearline_compressed_data_used": "0.00MB",
+	// 	"total_reclaimable_capacity": "0.00MB",
+	// 	"unmap": "on",
+	// 	"physical_capacity": "42.90TB",
+	// 	"physical_free_capacity": "42.90TB",
+	// 	"used_capacity_before_reduction": "0.00MB",
+	// 	"used_capacity_after_reduction": "0.00MB",
+	// 	"overhead_capacity": "0.00MB",
+	// 	"deduplication_capacity_saving": "0.00MB",
+	// 	"enhanced_callhome": "on",
+	// 	"censor_callhome": "off"
+	// }
 
+	if err != nil {
+		log.Errorf("Executing lssystem cmd failed: %s", err)
+	}
+	log.Debugln("Response of lssystem: ", systemMetrics)
 	total_mdisk_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_mdisk_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(total_mdisk_capacity, prometheus.GaugeValue, float64(total_mdisk_capacity_bytes), labelvalues...)
 
 	space_in_mdisk_grps_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "space_in_mdisk_grps").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(space_in_mdisk_grps, prometheus.GaugeValue, float64(space_in_mdisk_grps_bytes), labelvalues...)
 
 	space_allocated_to_vdisks_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "space_allocated_to_vdisks").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(space_allocated_to_vdisks, prometheus.GaugeValue, float64(space_allocated_to_vdisks_bytes), labelvalues...)
 
 	total_free_space_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_free_space").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(total_free_space, prometheus.GaugeValue, float64(total_free_space_bytes), labelvalues...)
 
 	total_vdiskcopy_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_vdiskcopy_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(total_vdiskcopy_capacity, prometheus.GaugeValue, float64(total_vdiskcopy_capacity_bytes), labelvalues...)
 
 	total_used_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_used_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(total_used_capacity, prometheus.GaugeValue, float64(total_used_capacity_bytes), labelvalues...)
 
 	total_overallocation_pc, err := strconv.ParseFloat(gjson.Get(systemMetrics, "total_overallocation").String(), 64)
+	if err != nil {
+		log.Errorf("Parsing string as float failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(total_overallocation, prometheus.GaugeValue, total_overallocation_pc, labelvalues...)
 
 	total_vdisk_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_vdisk_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(total_vdisk_capacity, prometheus.GaugeValue, float64(total_vdisk_capacity_bytes), labelvalues...)
 
 	total_allocated_extent_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_allocated_extent_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(total_allocated_extent_capacity, prometheus.GaugeValue, float64(total_allocated_extent_capacity_bytes), labelvalues...)
 
 	compression_virtual_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "compression_virtual_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(compression_virtual_capacity, prometheus.GaugeValue, float64(compression_virtual_capacity_bytes), labelvalues...)
 
 	compression_compressed_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "compression_compressed_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(compression_compressed_capacity, prometheus.GaugeValue, float64(compression_compressed_capacity_bytes), labelvalues...)
 
 	compression_uncompressed_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "compression_uncompressed_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(compression_uncompressed_capacity, prometheus.GaugeValue, float64(compression_uncompressed_capacity_bytes), labelvalues...)
 
 	total_drive_raw_capacity_bytes, err := strconv.ParseFloat(gjson.Get(systemMetrics, "total_drive_raw_capacity").String(), 64)
+	if err != nil {
+		log.Errorf("Parsing string as float failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(total_drive_raw_capacity, prometheus.GaugeValue, float64(total_drive_raw_capacity_bytes), labelvalues...)
 
 	tier0_flash_compressed_data_used_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "tier0_flash_compressed_data_used").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(tier0_flash_compressed_data_used, prometheus.GaugeValue, float64(tier0_flash_compressed_data_used_bytes), labelvalues...)
 
 	tier1_flash_compressed_data_used_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "tier1_flash_compressed_data_used").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(tier1_flash_compressed_data_used, prometheus.GaugeValue, float64(tier1_flash_compressed_data_used_bytes), labelvalues...)
 
 	tier_enterprise_compressed_data_used_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "tier_enterprise_compressed_data_used").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(tier_enterprise_compressed_data_used, prometheus.GaugeValue, float64(tier_enterprise_compressed_data_used_bytes), labelvalues...)
 
 	tier_nearline_compressed_data_used_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "tier_nearline_compressed_data_used").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(tier_nearline_compressed_data_used, prometheus.GaugeValue, float64(tier_nearline_compressed_data_used_bytes), labelvalues...)
 
 	total_reclaimable_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_reclaimable_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(total_reclaimable_capacity, prometheus.GaugeValue, float64(total_reclaimable_capacity_bytes), labelvalues...)
 
 	physical_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "physical_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(physical_capacity, prometheus.GaugeValue, float64(physical_capacity_bytes), labelvalues...)
 
 	physical_free_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "physical_free_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(physical_free_capacity, prometheus.GaugeValue, float64(physical_free_capacity_bytes), labelvalues...)
 
 	used_capacity_before_reduction_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "used_capacity_before_reduction").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(used_capacity_before_reduction, prometheus.GaugeValue, float64(used_capacity_before_reduction_bytes), labelvalues...)
 
 	used_capacity_after_reduction_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "used_capacity_after_reduction").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(used_capacity_after_reduction, prometheus.GaugeValue, float64(used_capacity_after_reduction_bytes), labelvalues...)
 
 	overhead_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "overhead_capacity").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(overhead_capacity, prometheus.GaugeValue, float64(overhead_capacity_bytes), labelvalues...)
 
 	deduplication_capacity_saving_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "deduplication_capacity_saving").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(deduplication_capacity_saving, prometheus.GaugeValue, float64(deduplication_capacity_saving_bytes), labelvalues...)
 
 	tierArray := gjson.Get(systemMetrics, "tiers").Array()
 	for _, tier := range tierArray {
 		tier_capacity_bytes, err := utils.ToBytes(tier.Get("tier_capacity").String())
+		if err != nil {
+			log.Errorf("Converting capacity unit failed: %s", err)
+		}
 		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), sClient.IpAddress, sClient.Hostname, tier.Get("tier").String())
 
 		tier_free_capacity_bytes, err := utils.ToBytes(tier.Get("tier_free_capacity").String())
-		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.IpAddress, sClient.Hostname, tier.Get("tier").String())
 		if err != nil {
-			return err
+			log.Errorf("Converting capacity unit failed: %s", err)
 		}
-
+		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.IpAddress, sClient.Hostname, tier.Get("tier").String())
 	}
 
 	statistics_status_value, err := utils.ToBool(gjson.Get(systemMetrics, "statistics_status").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(statistics_status, prometheus.GaugeValue, statistics_status_value, labelvalues...)
 
 	statistics_frequency_value := gjson.Get(systemMetrics, "statistics_frequency").Float()
@@ -328,48 +523,84 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	ch <- prometheus.MustNewConstMetric(inventory_mail_interval, prometheus.GaugeValue, inventory_mail_interval_value, labelvalues...)
 
 	auth_service_configured_value, err := utils.ToBool(gjson.Get(systemMetrics, "auth_service_configured").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(auth_service_configured, prometheus.GaugeValue, auth_service_configured_value, labelvalues...)
 
 	auth_service_enabled_value, err := utils.ToBool(gjson.Get(systemMetrics, "auth_service_enabled").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(auth_service_enabled, prometheus.GaugeValue, auth_service_enabled_value, labelvalues...)
 
 	auth_service_pwd_set_value, err := utils.ToBool(gjson.Get(systemMetrics, "auth_service_pwd_set").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(auth_service_pwd_set, prometheus.GaugeValue, auth_service_pwd_set_value, labelvalues...)
 
 	auth_service_cert_set_value, err := utils.ToBool(gjson.Get(systemMetrics, "auth_service_cert_set").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(auth_service_cert_set, prometheus.GaugeValue, auth_service_cert_set_value, labelvalues...)
 
-	relationship_bandwidth_limit_value, err := utils.ToBool(gjson.Get(systemMetrics, "relationship_bandwidth_limit").String())
+	relationship_bandwidth_limit_value := gjson.Get(systemMetrics, "relationship_bandwidth_limit").Float()
 	ch <- prometheus.MustNewConstMetric(relationship_bandwidth_limit, prometheus.GaugeValue, relationship_bandwidth_limit_value, labelvalues...)
 
 	easy_tier_acceleration_value, err := utils.ToBool(gjson.Get(systemMetrics, "easy_tier_acceleration").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(easy_tier_acceleration, prometheus.GaugeValue, easy_tier_acceleration_value, labelvalues...)
 
 	has_nas_key_value, err := utils.ToBool(gjson.Get(systemMetrics, "has_nas_key").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(has_nas_key, prometheus.GaugeValue, has_nas_key_value, labelvalues...)
 
 	rc_buffer_size_value := gjson.Get(systemMetrics, "rc_buffer_size").Float()
 	ch <- prometheus.MustNewConstMetric(rc_buffer_size, prometheus.GaugeValue, rc_buffer_size_value, labelvalues...)
 
 	compression_active_value, err := utils.ToBool(gjson.Get(systemMetrics, "compression_active").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(compression_active, prometheus.GaugeValue, compression_active_value, labelvalues...)
 
 	cache_prefetch_value, err := utils.ToBool(gjson.Get(systemMetrics, "cache_prefetch").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(cache_prefetch, prometheus.GaugeValue, cache_prefetch_value, labelvalues...)
 
 	compression_destage_mode_value, err := utils.ToBool(gjson.Get(systemMetrics, "compression_destage_mode").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(compression_destage_mode, prometheus.GaugeValue, compression_destage_mode_value, labelvalues...)
 
 	high_temp_mode_value, err := utils.ToBool(gjson.Get(systemMetrics, "high_temp_mode").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(high_temp_mode, prometheus.GaugeValue, high_temp_mode_value, labelvalues...)
 
 	vdisk_protection_time_value := gjson.Get(systemMetrics, "vdisk_protection_time").Float()
 	ch <- prometheus.MustNewConstMetric(vdisk_protection_time, prometheus.GaugeValue, vdisk_protection_time_value, labelvalues...)
 
 	vdisk_protection_enabled_value, err := utils.ToBool(gjson.Get(systemMetrics, "vdisk_protection_enabled").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(vdisk_protection_enabled, prometheus.GaugeValue, vdisk_protection_enabled_value, labelvalues...)
 
 	odx_value, err := utils.ToBool(gjson.Get(systemMetrics, "odx").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(odx, prometheus.GaugeValue, odx_value, labelvalues...)
 
 	max_replication_delay_value := gjson.Get(systemMetrics, "max_replication_delay").Float()
@@ -379,15 +610,21 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	ch <- prometheus.MustNewConstMetric(partnership_exclusion_threshold, prometheus.GaugeValue, partnership_exclusion_threshold_value, labelvalues...)
 
 	gen1_compatibility_mode_enabled_value, err := utils.ToBool(gjson.Get(systemMetrics, "gen1_compatibility_mode_enabled").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(gen1_compatibility_mode_enabled, prometheus.GaugeValue, gen1_compatibility_mode_enabled_value, labelvalues...)
 
-	unmap_value, err := utils.ToBool(gjson.Get(systemMetrics, "unmap").String())
-	ch <- prometheus.MustNewConstMetric(unmap, prometheus.GaugeValue, unmap_value, labelvalues...)
-
 	enhanced_callhome_value, err := utils.ToBool(gjson.Get(systemMetrics, "enhanced_callhome").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(enhanced_callhome, prometheus.GaugeValue, enhanced_callhome_value, labelvalues...)
 
 	censor_callhome_value, err := utils.ToBool(gjson.Get(systemMetrics, "censor_callhome").String())
+	if err != nil {
+		log.Errorf("Converting capacity unit failed: %s", err)
+	}
 	ch <- prometheus.MustNewConstMetric(censor_callhome, prometheus.GaugeValue, censor_callhome_value, labelvalues...)
 
 	physical_capacity_usage_value := (float64(physical_capacity_bytes) - float64(physical_free_capacity_bytes)) / float64(physical_capacity_bytes) * 100
@@ -399,5 +636,6 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	mdiskgrp_capacity_usage_value := (float64(total_mdisk_capacity_bytes) - float64(total_free_space_bytes) - float64(total_reclaimable_capacity_bytes)) / float64(total_mdisk_capacity_bytes) * 100
 	ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity_usage, prometheus.GaugeValue, float64(mdiskgrp_capacity_usage_value), labelvalues...)
 
+	log.Debugln("Leaving System collector.")
 	return err
 }
