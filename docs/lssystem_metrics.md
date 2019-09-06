@@ -1,32 +1,8 @@
 ### Spectrum System Metrics
 
 ```
-# HELP spectrum_system_auth_service_cert_set 
-# TYPE spectrum_system_auth_service_cert_set gauge
-
-# HELP spectrum_system_auth_service_configured 
-# TYPE spectrum_system_auth_service_configured gauge
-
-# HELP spectrum_system_auth_service_enabled 
-# TYPE spectrum_system_auth_service_enabled gauge
-
-# HELP spectrum_system_auth_service_pwd_set 
-# TYPE spectrum_system_auth_service_pwd_set gauge
-
-# HELP spectrum_system_cache_prefetch 
-# TYPE spectrum_system_cache_prefetch gauge
-
-# HELP spectrum_system_censor_callhome 
-# TYPE spectrum_system_censor_callhome gauge
-
-# HELP spectrum_system_compression_active 
-# TYPE spectrum_system_compression_active gauge
-
 # HELP spectrum_system_compression_compressed_capacity The total used capacity for all compressed volume copies in non-data reduction pools.
 # TYPE spectrum_system_compression_compressed_capacity gauge
-
-# HELP spectrum_system_compression_destage_mode 
-# TYPE spectrum_system_compression_destage_mode gauge
 
 # HELP spectrum_system_compression_uncompressed_capacity The total uncompressed used capacity for all compressed volume copies in non-data reduction pools
 # TYPE spectrum_system_compression_uncompressed_capacity gauge
@@ -37,47 +13,8 @@
 # HELP spectrum_system_deduplication_capacity_saving The total amount of used capacity that is saved by data deduplication. This saving is before any compression.
 # TYPE spectrum_system_deduplication_capacity_saving gauge
 
-# HELP spectrum_system_easy_tier_acceleration 
-# TYPE spectrum_system_easy_tier_acceleration gauge
-
-# HELP spectrum_system_enhanced_callhome 
-# TYPE spectrum_system_enhanced_callhome gauge
-
-# HELP spectrum_system_gen1_compatibility_mode_enabled 
-# TYPE spectrum_system_gen1_compatibility_mode_enabled gauge
-
-# HELP spectrum_system_gm_inter_cluster_delay_simulation 
-# TYPE spectrum_system_gm_inter_cluster_delay_simulation gauge
-
-# HELP spectrum_system_gm_intra_cluster_dalay_simulation 
-# TYPE spectrum_system_gm_intra_cluster_dalay_simulation gauge
-
-# HELP spectrum_system_gm_link_tolerance 
-# TYPE spectrum_system_gm_link_tolerance gauge
-
-# HELP spectrum_system_gm_max_host_delay 
-# TYPE spectrum_system_gm_max_host_delay gauge
-
-# HELP spectrum_system_has_nas_key 
-# TYPE spectrum_system_has_nas_key gauge
-
-# HELP spectrum_system_high_temp_mode 
-# TYPE spectrum_system_high_temp_mode gauge
-
-# HELP spectrum_system_inventory_mail_interval 
-# TYPE spectrum_system_inventory_mail_interval gauge
-
-# HELP spectrum_system_max_replication_delay 
-# TYPE spectrum_system_max_replication_delay gauge
-
-# HELP spectrum_system_odx 
-# TYPE spectrum_system_odx gauge
-
 # HELP spectrum_system_overhead_capacity The overhead capacity consumption in all storage pools that is not attributed to data.
 # TYPE spectrum_system_overhead_capacity gauge
-
-# HELP spectrum_system_partnership_exclusion_threshold 
-# TYPE spectrum_system_partnership_exclusion_threshold gauge
 
 # HELP spectrum_system_physical_capacity the total physical capacity of all fully allocated and thin-provisioned storage that is managed by the storage system
 # TYPE spectrum_system_physical_capacity gauge
@@ -85,23 +22,11 @@
 # HELP spectrum_system_physical_free_capacity The total free physical capacity of all fully allocated and thin-provisioned storage that is managed by the storage system
 # TYPE spectrum_system_physical_free_capacity gauge
 
-# HELP spectrum_system_rc_buffer_size 
-# TYPE spectrum_system_rc_buffer_size gauge
-
-# HELP spectrum_system_relationship_bandwidth_limit 
-# TYPE spectrum_system_relationship_bandwidth_limit gauge
-
 # HELP spectrum_system_space_allocated_to_vdisks The sum of mdiskgrp real_capacity
 # TYPE spectrum_system_space_allocated_to_vdisks gauge
 
 # HELP spectrum_system_space_in_mdisk_grps The sum of mdiskgrp capacity
 # TYPE spectrum_system_space_in_mdisk_grps gauge
-
-# HELP spectrum_system_statistics_frequency 
-# TYPE spectrum_system_statistics_frequency gauge
-
-# HELP spectrum_system_statistics_status 
-# TYPE spectrum_system_statistics_status gauge
 
 # HELP spectrum_system_tier0_flash_compressed_data_used The capacity of compressed data used on the flash tier 0 storage tier
 # TYPE spectrum_system_tier0_flash_compressed_data_used gauge
@@ -148,20 +73,11 @@
 # HELP spectrum_system_total_vdiskcopy_capacity The total virtual capacity of all volume copies in the cluster
 # TYPE spectrum_system_total_vdiskcopy_capacity gauge
 
-# HELP spectrum_system_unmap 
-# TYPE spectrum_system_unmap gauge
-
 # HELP spectrum_system_used_capacity_after_reduction The total amount of capacity that is used for thin-provisioned and compressed volume copies in the storage pool after data reduction occurs.
 # TYPE spectrum_system_used_capacity_after_reduction gauge
 
 # HELP spectrum_system_used_capacity_before_reduction The total amount of data that is written to thin-provisioned and compressed volume copies that are in data reduction storage pools - before data reduction occurs
 # TYPE spectrum_system_used_capacity_before_reduction gauge
-
-# HELP spectrum_system_vdisk_protection_enabled 
-# TYPE spectrum_system_vdisk_protection_enabled gauge
-
-# HELP spectrum_system_vdisk_protection_time 
-# TYPE spectrum_system_vdisk_protection_time gauge
 
 # HELP spectrum_system_physical_capacity_used_percent The physical capacity utilization.
 # TYPE spectrum_system_physical_capacity_used_percent
