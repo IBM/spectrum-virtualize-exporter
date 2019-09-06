@@ -138,7 +138,6 @@ func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.M
 				requestErrorCount++
 				success = 0
 				return
-
 			}
 			authTokenCache.Store(host.IpAddress, authtoken)
 			result, _ := authTokenCache.Load(host.IpAddress)
