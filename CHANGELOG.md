@@ -1,3 +1,5 @@
+* [CHANGE] Disable http methods other than GET
+
 ## 0.8.0 / 2019-07-30
 * [BUGFIX] Fix formulas of volume usage.
 * [FEATURE] Enhance error logging and response examples
