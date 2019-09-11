@@ -1,3 +1,4 @@
+## 0.9.0 / 2019-09-11
 * [CHANGE] Disable http methods other than GET
 
 ## 0.8.0 / 2019-07-30
