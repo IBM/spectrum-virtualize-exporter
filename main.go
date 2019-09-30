@@ -56,6 +56,12 @@ func main() {
 	http.Handle(*metricsPath, newHandler(!*disableExporterMetrics))
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		//Set http cache header
+                w.Header().Set("Cache-Control", "no-store, no-cache")
+                w.Header().Set("Content-Security-Policy", "default-src: 'self'")
+                w.Header().Set("X-Content-Type-Options", "no sniff")
+                w.Header().Set("X-XSS-Protection", "1")
+                w.Header().Set("Strict-Transport-Security", "31536000")
 		if r.Method == "GET" {
 			w.Write([]byte(`<html>
 			<head><title>Spectrum Virtualize exporter</title></head>
@@ -107,6 +113,12 @@ func newHandler(includeExporterMetrics bool) *handler {
 
 // ServeHTTP implements http.Handler.
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	 //Set http cache header
+        w.Header().Set("Cache-Control", "no-store, no-cache")
+        w.Header().Set("Content-Security-Policy", "default-src: 'self'")
+        w.Header().Set("X-Content-Type-Options", "no sniff")
+        w.Header().Set("X-XSS-Protection", "1")
+        w.Header().Set("Strict-Transport-Security", "31536000")
 	if r.Method == "GET" {
 		targets, err := targetsForRequest(r)
 		if err != nil {
