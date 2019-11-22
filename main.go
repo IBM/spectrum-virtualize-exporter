@@ -9,8 +9,8 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
-	"github.com/spectrum-virtualize-exporter/collector"
-	"github.com/spectrum-virtualize-exporter/utils"
+	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/collector"
+	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
