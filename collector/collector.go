@@ -7,8 +7,8 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
-	"github.com/spectrum-virtualize-exporter/utils"
 	"github.com/tidwall/gjson"
+	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
 
