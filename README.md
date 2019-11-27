@@ -30,13 +30,10 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
     ```
     export GOPATH=your_gopath
     cd your_gopath
-    mkdir src
-    cd src
-    mkdir github.com
-    cd github.com
     git clone git@github.ibm.com:ZaaS/spectrum-virtualize-exporter.git
     cd spectrum-virtualize-exporter
     go build
+    go install (Optional but recommend. This step will put spectrum-virtualize-exporter binary package into $GOPATH/bin directory. It will be connvenient to copy the package to Monitoring docker image)
     ```
   * docker image
     ```
