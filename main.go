@@ -3,8 +3,9 @@ package main
 import (
 	"fmt"
 	"net/http"
-	_ "net/http/pprof"
 
+	"github.com/gorilla/csrf"
+	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
@@ -32,7 +33,8 @@ type handler struct {
 }
 
 func main() {
-
+	r := mux.NewRouter()
+	CSRF := csrf.Protect([]byte("spectrum-expor-32-bytes-auth-key"))
 	// Parse flags.
 	log.AddFlags(kingpin.CommandLine)
 	kingpin.Version(version.Print("spectrum_virtualize_exporter"))
@@ -53,26 +55,28 @@ func main() {
 
 	//Launch http services
 	// http.HandleFunc(*metricsPath, handlerMetricRequest)
-	http.Handle(*metricsPath, newHandler(!*disableExporterMetrics))
+	r.Handle(*metricsPath, newHandler(!*disableExporterMetrics))
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "GET" {
-			w.Write([]byte(`<html>
-			<head><title>Spectrum Virtualize exporter</title></head>
-			<body>
-				<h1>Spectrum Virtualize exporter</h1>
-				<p><a href='` + *metricsPath + `'>Metrics</a></p>
-			</body>
-		</html>`))
-		} else {
-			http.Error(w, "403 Forbidden", 403)
-		}
-	})
+	r.HandleFunc("/", rootHandler)
 	// http.Handle(*metricsPath, prometheus.Handler()) // Normal metrics endpoint for Spectrum Virtualize exporter itself.
 
 	log.Infof("Listening for %s on %s\n", *metricsPath, *listenAddress)
-	log.Fatal(http.ListenAndServe(*listenAddress, nil))
+	log.Fatal(http.ListenAndServe(*listenAddress, CSRF(r)))
 
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == "GET" {
+		w.Write([]byte(`<html>
+		<head><title>Spectrum Virtualize exporter</title></head>
+		<body>
+			<h1>Spectrum Virtualize exporter</h1>
+			<p><a href='` + *metricsPath + `'>Metrics</a></p>
+		</body>
+	</html>`))
+	} else {
+		http.Error(w, "403 Forbidden", 403)
+	}
 }
 
 func targetsForRequest(r *http.Request) ([]utils.Targets, error) {
@@ -112,16 +116,15 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			http.Error(w, err.Error(), 400)
 			return
-		} else {
-			handler, err := h.innerHandler(targets...)
-			if err != nil {
-				log.Warnln("Couldn't create  metrics handler:", err)
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte(fmt.Sprintf("Couldn't create  metrics handler: %s", err)))
-				return
-			}
-			handler.ServeHTTP(w, r)
 		}
+		handler, err := h.innerHandler(targets...)
+		if err != nil {
+			log.Warnln("Couldn't create  metrics handler:", err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(fmt.Sprintf("Couldn't create  metrics handler: %s", err)))
+			return
+		}
+		handler.ServeHTTP(w, r)
 	} else {
 		http.Error(w, "403 Forbidden", 403)
 	}
