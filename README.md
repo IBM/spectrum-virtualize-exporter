@@ -15,7 +15,7 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 | config.file | Path to configuration file | spectrumVirtualize.yml |
 | web.telemetry-path | Path under which to expose metrics | /metrics |
 | web.listen-address | Address on which to expose metrics and web interface | :9119 |
-| web.disable-exporter-metrics | Exclude metrics about the exporter itself (promhttp_*, process_*, go_*) | false |
+| web.disable-exporter-metrics | Exclude metrics about the exporter itself (promhttp_*, process_*, go_*) | true |
 | --collector.name | Collector are enabled, the name means name of CLI Command | By default enabled collectors: lssystem and lssystemstats. |
 | --no-collector.name | Collectors that are enabled by default can be disabled, the name means name of CLI Command | By default disabled collectors: lsnodestats, lsmdisk, lsmdiskgrp, lsvdisk and lsvdiskcopy. |
 
@@ -67,7 +67,7 @@ targets:
 
 | CLI Command | Description | Default | Metrics | Total number of metrics |
 | --- | --- | --- | --- | --- |
-| - | Metrics from the exporter itself. | Enabled | [List](docs/exporter_metrics.md) | 35 |
+| - | Metrics from the exporter itself. | Disabled | [List](docs/exporter_metrics.md) | 35 |
 | lssystem | Get a detailed view of a clustered system (system). | Enabled | [List](docs/lssystem_metrics.md) | 57 |
 | lssystemstats | Get the most recent values of all node statistics in a system. | Enabled | [List](docs/lssystemstats_metrics.md) | 49 |
 | lsnodestats | Ge the most recent values of statistics for all nodes. | Disabled | [List](docs/lsnodestats_metrics.md)| 46 |
