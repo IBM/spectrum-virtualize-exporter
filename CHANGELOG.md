@@ -1,11 +1,22 @@
+## 0.9.2 / 2020-04-30
+
+* [CHANGE] Disable metrics from the exporter itself by default
+
+## 0.9.1 / 2020-01-17
+
+* [CHANGE] Use go module to organise the dependency modules
+
 ## 0.9.0 / 2019-09-11
+
 * [CHANGE] Disable http methods other than GET
 
 ## 0.8.0 / 2019-07-30
+
 * [BUGFIX] Fix formulas of volume usage.
 * [FEATURE] Enhance error logging and response examples
 
 ## 0.7.0 / 2019-06-28
+
 * [FEATURE] Add 'target' label, its value is ipaddress
 
 ## 0.6.0 / 2019-06-21
@@ -50,5 +61,6 @@
 * [Feature] Add capacity usage metrics.
 
 ## 0.1.0 / 2019-03-14
+
 * [CLEANUP] Introduced semantic versioning and changelog. From now on,
   changes will be reported in this file.
