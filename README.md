@@ -48,7 +48,7 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 
   * Run as docker image
     ```
-    docker run -it -d -p 9119:9119 -v /etc/spectrumVirtualize/spectrumVirtualize.yml:/etc/spectrumVirtualize/spectrumVirtualize.yml --name spectrum-virtualize-exporter spectrum-virtualize-exporter --config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml --log.level debug --restart always
+    docker run -it -d -p 9119:9119 -v /etc/spectrumVirtualize/spectrumVirtualize.yml:/etc/spectrumVirtualize/spectrumVirtualize.yml --name spectrum-virtualize-exporter spectrum-virtualize-exporter --config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml --log.level debug
     ```
 
   * Visit http://localhost:9119/metrics
@@ -61,6 +61,7 @@ targets:
   - ipAddress: IP address
     userid: user
     password: password
+    verifyCert: true
 ```
 
 ## Exported Metrics
