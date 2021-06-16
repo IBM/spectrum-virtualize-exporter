@@ -7,13 +7,14 @@ import (
 )
 
 type Config struct {
-	Targets []Targets `yaml:"targets"`
+	Targets []Target `yaml:"targets"`
 }
 
-type Targets struct {
-	IpAddress string `yaml:"ipAddress"`
-	Userid    string `yaml:"userid"`
-	Password  string `yaml:"password"`
+type Target struct {
+	IpAddress  string `yaml:"ipAddress"`
+	Userid     string `yaml:"userid"`
+	Password   string `yaml:"password"`
+	VerifyCert bool   `yaml:"verifyCert"`
 }
 
 //Load loads a config from filename

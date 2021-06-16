@@ -52,7 +52,6 @@ func main() {
 
 	log.Infoln("Starting Spectrum_Virtualize_exporter", version.Info())
 	log.Infoln("Build context", version.BuildContext())
-
 	//Launch http services
 	// http.HandleFunc(*metricsPath, handlerMetricRequest)
 	r.Handle(*metricsPath, newHandler(!*disableExporterMetrics))
@@ -79,14 +78,14 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func targetsForRequest(r *http.Request) ([]utils.Targets, error) {
+func targetsForRequest(r *http.Request) ([]utils.Target, error) {
 	reqTarget := r.URL.Query().Get("target")
 	if reqTarget == "" {
 		return cfg.Targets, nil
 	}
 	for _, t := range cfg.Targets {
 		if t.IpAddress == reqTarget {
-			return []utils.Targets{t}, nil
+			return []utils.Target{t}, nil
 		}
 	}
 
@@ -130,7 +129,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *handler) innerHandler(targets ...utils.Targets) (http.Handler, error) {
+func (h *handler) innerHandler(targets ...utils.Target) (http.Handler, error) {
 
 	registry := prometheus.NewRegistry()
 	sc, err := collector.NewSVCCollector(targets) //new a Spectrum Virtualize Collector
@@ -139,7 +138,7 @@ func (h *handler) innerHandler(targets ...utils.Targets) (http.Handler, error) {
 	if err != nil {
 		log.Fatalf("Couldn't create collector: %s", err)
 	}
-	if enableCollector == true {
+	if enableCollector {
 		log.Infof("Enabled collectors:")
 		for n := range sc.Collectors {
 			log.Infof(" - %s", n)
