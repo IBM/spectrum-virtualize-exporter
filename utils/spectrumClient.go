@@ -19,6 +19,7 @@ type SpectrumClient struct {
 	IpAddress  string
 	ErrorCount float64
 	Hostname   string
+	VerifyCert bool
 }
 
 func (s *SpectrumClient) RetriveAuthToken() (authToken string, err error) {
@@ -34,10 +35,11 @@ func (s *SpectrumClient) RetriveAuthToken() (authToken string, err error) {
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: !s.VerifyCert},
 	},
-		Timeout: 45 * time.Second}
-
+		Timeout: 45 * time.Second,
+	}
+	log.Debug("Skip verifying the server cert: %v", !s.VerifyCert)
 	req, _ := http.NewRequest("POST", reqAuthURL, nil)
 	req.Header.Add("X-Auth-Username", s.UserName)
 	req.Header.Add("X-Auth-Password", s.Password)
@@ -80,10 +82,10 @@ func (s *SpectrumClient) CallSpectrumAPI(request string) (body string, err error
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig:       &tls.Config{InsecureSkipVerify: true},
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: !s.VerifyCert},
 	},
 		Timeout: 45 * time.Second}
-
+	log.Debugf("Skip verifying the server cert: %v", !s.VerifyCert)
 	// New POST request
 	req, _ := http.NewRequest("POST", request, nil)
 	// header parameters

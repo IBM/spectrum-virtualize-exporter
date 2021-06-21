@@ -34,7 +34,7 @@ var (
 
 // SVCollector implements the prometheus.Collecotor interface
 type SVCCollector struct {
-	targets    []utils.Targets
+	targets    []utils.Target
 	Collectors map[string]Collector
 }
 
@@ -65,7 +65,7 @@ func registerCollector(collector string, isDefaultEnabled bool, factory func() (
 }
 
 // newSVCCollector creates a new Spectrum Virtualize Collector.
-func NewSVCCollector(targets []utils.Targets) (*SVCCollector, error) {
+func NewSVCCollector(targets []utils.Target) (*SVCCollector, error) {
 	collectors := make(map[string]Collector)
 	// log.Infof("Enabled collectors:")
 	for key, enabled := range collectorState {
@@ -106,14 +106,15 @@ func (c SVCCollector) Collect(ch chan<- prometheus.Metric) {
 	wg.Wait()
 }
 
-func (c *SVCCollector) collectForHost(host utils.Targets, ch chan<- prometheus.Metric, wg *sync.WaitGroup) {
+func (c *SVCCollector) collectForHost(host utils.Target, ch chan<- prometheus.Metric, wg *sync.WaitGroup) {
 	defer wg.Done()
 	start := time.Now()
 	success := 0
 	spectrumClient := utils.SpectrumClient{
-		UserName:  host.Userid,
-		Password:  host.Password,
-		IpAddress: host.IpAddress,
+		UserName:   host.Userid,
+		Password:   host.Password,
+		IpAddress:  host.IpAddress,
+		VerifyCert: host.VerifyCert,
 	}
 	defer func() {
 		ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), spectrumClient.IpAddress, spectrumClient.Hostname)
