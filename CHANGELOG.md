@@ -1,3 +1,7 @@
+## 0.9.4 / 2022-04-18
+
+* [FIXBUG] Fix vulunerabilities for CVE-2022-21698
+
 ## 0.9.3 / 2021-06-21
 
 * [FEATURE] Support to verify the certification of Spectrum device
