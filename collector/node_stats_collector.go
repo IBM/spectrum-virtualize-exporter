@@ -167,9 +167,13 @@ func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- pro
 	// ]
 
 	nodeStatsArray := gjson.Parse(nodeStatsResp).Array()
+	nodesNumber := len(nodeStatsArray) / len(nodeStats_metrics)
+
 	for i, nodeStats_metric := range nodeStats_metrics {
-		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[i].Get("stat_current").Float(), sClient.IpAddress, sClient.Hostname, nodeStatsArray[i].Get("node_name").String())
-		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("stat_current").Float(), sClient.IpAddress, sClient.Hostname, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("node_name").String())
+		for node := 0 ; node < nodesNumber ; node++ {
+			index := len(nodeStats_metrics) * node + i
+			ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[index].Get("stat_current").Float(), sClient.IpAddress, sClient.Hostname, nodeStatsArray[index].Get("node_name").String())
+		}
 	}
 	log.Debugln("Leaving NodeStats collector.")
 	return err
