@@ -298,9 +298,9 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	}
 	ch <- prometheus.MustNewConstMetric(compression_uncompressed_capacity, prometheus.GaugeValue, float64(compression_uncompressed_capacity_bytes), labelvalues...)
 
-	total_drive_raw_capacity_bytes, err := strconv.ParseFloat(gjson.Get(systemMetrics, "total_drive_raw_capacity").String(), 64)
+	total_drive_raw_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_drive_raw_capacity").String())
 	if err != nil {
-		log.Errorf("Parsing string as float failed: %s", err)
+		log.Errorf("Converting capacity unit failed: %s", err)
 	}
 	ch <- prometheus.MustNewConstMetric(total_drive_raw_capacity, prometheus.GaugeValue, float64(total_drive_raw_capacity_bytes), labelvalues...)
 
