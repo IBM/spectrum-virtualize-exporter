@@ -1,4 +1,4 @@
-package collector
+package s_collector
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	prefix          = "spectrum_"
+	prefix          = "spectrum_s_"
 	defaultEnabled  = true
 	defaultDisabled = false
 )

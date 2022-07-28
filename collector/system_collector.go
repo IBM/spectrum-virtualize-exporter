@@ -43,7 +43,6 @@ var (
 	physical_capacity_usage *prometheus.Desc
 	volume_capacity_usage   *prometheus.Desc
 	mdiskgrp_capacity_usage *prometheus.Desc
-	hostname                string
 )
 
 func init() {
