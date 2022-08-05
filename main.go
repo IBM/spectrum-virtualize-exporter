@@ -8,11 +8,12 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/collectors"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
-	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/collector"
-	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/s_collector"
+	metricsCollector "github.ibm.com/ZaaS/spectrum-virtualize-exporter/collector"
+	settingsCollector "github.ibm.com/ZaaS/spectrum-virtualize-exporter/collector_s"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
@@ -24,10 +25,11 @@ var (
 	listenAddress          = kingpin.Flag("web.listen-address", "Address on which to expose metrics and web interface.").Default(":9119").String()
 	disableExporterMetrics = kingpin.Flag("web.disable-exporter-metrics", "Exclude metrics about the exporter itself (promhttp_*, process_*, go_*).").Default("true").Bool()
 	// maxRequests            = kingpin.Flag("web.max-requests", "Maximum number of parallel scrape requests. Use 0 to disable.").Default("40").Int()
-	cfg                     *utils.Config
-	enableMetricsCollector  bool = true
-	enableSettingsCollector bool = true
-	authTokenCache          sync.Map
+	cfg *utils.Config
+	//enableSettingCollectors bool                        = true
+	authTokenCaches  map[string]*utils.AuthToken = make(map[string]*utils.AuthToken)
+	authTokenMutexes map[string]*sync.Mutex      = make(map[string]*sync.Mutex)
+	colCounters      map[string]*utils.Counter   = make(map[string]*utils.Counter)
 )
 
 type handler struct {
@@ -51,10 +53,14 @@ func main() {
 	// var err error
 	c, err := utils.GetConfig(*configFile)
 	if err != nil {
-		log.Fatalf("Error parsing config file: %s", err)
+		log.Fatalf("Error parsing config file: %s", err.Error())
 	}
 	cfg = c
-
+	for _, t := range cfg.Targets {
+		authTokenCaches[t.IpAddress] = &utils.AuthToken{}
+		authTokenMutexes[t.IpAddress] = &sync.Mutex{}
+		colCounters[t.IpAddress] = &utils.Counter{}
+	}
 	log.Infoln("Starting Spectrum_Virtualize_exporter", version.Info())
 	log.Infoln("Build context", version.BuildContext())
 	//Launch http services
@@ -106,8 +112,10 @@ func newHandler(includeExporterMetrics bool) *handler {
 	}
 	if h.includeExporterMetrics {
 		h.exporterMetricsRegistry.MustRegister(
-			prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
-			prometheus.NewGoCollector(),
+			collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}),
+			collectors.NewGoCollector(),
+			//prometheus.NewProcessCollector(prometheus.ProcessCollectorOpts{}),
+			//prometheus.NewGoCollector(),
 		)
 	}
 	return h
@@ -122,7 +130,6 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
-		//handler, err := h.settingsHandler(targets...)
 		if r.RequestURI == "/metrics" {
 			handler, err = h.metricsHandler(targets...)
 		}
@@ -133,7 +140,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Warnln("Couldn't create handler:", err)
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("Couldn't create handler: %s", err)))
+			w.Write([]byte(fmt.Sprintf("Couldn't create handler: %s", err.Error())))
 			return
 		}
 		handler.ServeHTTP(w, r)
@@ -145,22 +152,15 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (h *handler) metricsHandler(targets ...utils.Target) (http.Handler, error) {
 
 	registry := prometheus.NewRegistry()
-	sc, err := collector.NewSVCCollector(targets, &authTokenCache) //new a Spectrum Virtualize Collector
+	sc, err := metricsCollector.NewSVCCollector(targets, authTokenCaches, authTokenMutexes, colCounters) //new a Spectrum Virtualize Collector
 	// registry.MustRegister(version.NewCollector("Spectrum-Virtualize-Exporter"))
 
 	if err != nil {
-		log.Fatalf("Couldn't create metrics collector: %s", err)
-	}
-	if enableMetricsCollector {
-		log.Infof("Enabled metrics collectors:")
-		for n := range sc.Collectors {
-			log.Infof(" - %s", n)
-		}
-		enableMetricsCollector = false
+		log.Fatalf("Couldn't create metrics collector: %s", err.Error())
 	}
 
 	if err := registry.Register(sc); err != nil {
-		return nil, fmt.Errorf("couldn't register metrics SVC collector: %s", err)
+		return nil, fmt.Errorf("couldn't register metrics SVC collector: %s", err.Error())
 	}
 	handler := promhttp.HandlerFor(
 		prometheus.Gatherers{h.exporterMetricsRegistry, registry},
@@ -183,22 +183,15 @@ func (h *handler) metricsHandler(targets ...utils.Target) (http.Handler, error) 
 func (h *handler) settingsHandler(targets ...utils.Target) (http.Handler, error) {
 
 	registry := prometheus.NewRegistry()
-	sc, err := s_collector.NewSVCCollector(targets, &authTokenCache) //new a Spectrum Virtualize Collector
+	sc, err := settingsCollector.NewSVCCollector(targets, authTokenCaches, authTokenMutexes, colCounters) //new a Spectrum Virtualize Collector
 	// registry.MustRegister(version.NewCollector("Spectrum-Virtualize-Exporter"))
 
 	if err != nil {
-		log.Fatalf("Couldn't create setting collector: %s", err)
-	}
-	if enableSettingsCollector {
-		log.Infof("Enabled setting collectors:")
-		for n := range sc.Collectors {
-			log.Infof(" - %s", n)
-		}
-		enableSettingsCollector = false
+		log.Fatalf("Couldn't create setting collector: %s", err.Error())
 	}
 
 	if err := registry.Register(sc); err != nil {
-		return nil, fmt.Errorf("couldn't register settings SVC collector: %s", err)
+		return nil, fmt.Errorf("couldn't register settings SVC collector: %s", err.Error())
 	}
 	handler := promhttp.HandlerFor(
 		prometheus.Gatherers{h.exporterMetricsRegistry, registry},

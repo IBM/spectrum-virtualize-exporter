@@ -104,10 +104,9 @@ func (*nodeStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	log.Debugln("Entering NodeStats collector ...")
-	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsnodestats"
-	nodeStatsResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	nodeStatsResp, err := sClient.CallSpectrumAPI("lsnodestats", true)
 	if err != nil {
-		log.Errorf("Executing lsnodestats cmd failed: %s", err)
+		log.Errorf("Executing lsnodestats cmd failed: %s", err.Error())
 	}
 	log.Debugln("Response of lsnodestats: ", nodeStatsResp)
 	// This is a sample output of lsnodestats

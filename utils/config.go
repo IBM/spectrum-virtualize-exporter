@@ -25,8 +25,6 @@ func (cfg *Config) _Init(filename string) (*Config, error) {
 		return nil, err
 	}
 
-	// cfg := New()
-
 	err = yaml.Unmarshal(content, cfg)
 	if err != nil {
 		return nil, err
@@ -36,7 +34,4 @@ func (cfg *Config) _Init(filename string) (*Config, error) {
 func GetConfig(filename string) (*Config, error) {
 	var cfg Config
 	return cfg._Init(filename)
-}
-func setDefaultValues(c *Config) {
-
 }

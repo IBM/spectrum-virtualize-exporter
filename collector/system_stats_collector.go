@@ -10,8 +10,7 @@ import (
 const prefix_stats = "spectrum_systemstats_"
 
 var (
-	metrics    [49]*prometheus.Desc
-	metricHelp []string
+	metrics [49]*prometheus.Desc
 )
 
 type systemStatsCollector struct {
@@ -107,10 +106,9 @@ func (*systemStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	log.Debugln("Entering SystemStats collector ...")
 	labelvalues := []string{sClient.IpAddress, sClient.Hostname}
-	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lssystemstats"
-	systemStatsResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	systemStatsResp, err := sClient.CallSpectrumAPI("lssystemstats", true)
 	if err != nil {
-		log.Errorf("Executing lssystemstats cmd failed: %s", err)
+		log.Errorf("Executing lssystemstats cmd failed: %s", err.Error())
 	}
 	log.Debugln("Response of lssystemstats: ", systemStatsResp)
 	// This is a sample output of lssystemstats
