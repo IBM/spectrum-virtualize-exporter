@@ -38,10 +38,9 @@ func (*volumeCopyCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *volumeCopyCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	log.Debugln("Entering volumeCopy collector ...")
-	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsvdiskcopy"
-	volumeCopyResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	volumeCopyResp, err := sClient.CallSpectrumAPI("lsvdiskcopy", true)
 	if err != nil {
-		log.Errorf("Executing lsvdiskcopy cmd failed: %s", err)
+		log.Errorf("Executing lsvdiskcopy cmd failed: %s", err.Error())
 	}
 	log.Debugln("Response of lsvdiskcopy: ", volumeCopyResp)
 	// This is a sample output of lsvdiskcopy
@@ -71,7 +70,7 @@ func (c *volumeCopyCollector) Collect(sClient utils.SpectrumClient, ch chan<- pr
 	for _, volumeCopy := range volumeCopyArray {
 		volumeCopy_capacity_bytes, err := utils.ToBytes(volumeCopy.Get("capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			log.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
 		ch <- prometheus.MustNewConstMetric(volumeCopy_Capacity, prometheus.GaugeValue, float64(volumeCopy_capacity_bytes), sClient.IpAddress, sClient.Hostname, volumeCopy.Get("vdisk_id").String(), volumeCopy.Get("vdisk_name").String(), volumeCopy.Get("copy_id").String(), volumeCopy.Get("mdisk_grp_name").String())
 	}

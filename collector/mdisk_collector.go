@@ -35,10 +35,9 @@ func (*mdiskCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c *mdiskCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	log.Debugln("Entering MDisk collector ...")
-	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsmdisk"
-	mDiskResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	mDiskResp, err := sClient.CallSpectrumAPI("lsmdisk", true)
 	if err != nil {
-		log.Errorf("Executing lsmdisk cmd failed: %s", err)
+		log.Errorf("Executing lsmdisk cmd failed: %s", err.Error())
 	}
 	log.Debugln("Response of lsmdisk: ", mDiskResp)
 	//This is a sample output of lsmdisk
@@ -68,7 +67,7 @@ func (c *mdiskCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 	for _, mdisk := range mDisks {
 		capacity_bytes, err := utils.ToBytes(mdisk.Get("capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			log.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
 		ch <- prometheus.MustNewConstMetric(mdiskCapacity, prometheus.GaugeValue, float64(capacity_bytes), sClient.IpAddress, sClient.Hostname, mdisk.Get("name").String(), mdisk.Get("status").String(), mdisk.Get("mdisk_grp_name").String(), mdisk.Get("tier").String())
 

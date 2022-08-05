@@ -1,4 +1,4 @@
-package s_collector
+package collector_s
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
@@ -35,10 +35,9 @@ func (*callhomeInfoCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c *callhomeInfoCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	log.Debugln("Entering Callhome collector ...")
-	reqURL := "https://" + sClient.IpAddress + ":7443/rest/lscloudcallhome"
-	respData, err := sClient.CallSpectrumAPI(reqURL)
+	respData, err := sClient.CallSpectrumAPI("lscloudcallhome", true)
 	if err != nil {
-		log.Errorf("Executing lscloudcallhome cmd failed: %s", err)
+		log.Errorf("Executing lscloudcallhome cmd failed: %s", err.Error())
 	}
 	log.Debugln("Response of lscloudcallhome: ", respData)
 	// This is a sample output of lscloudcallhome
@@ -54,7 +53,11 @@ func (c *callhomeInfoCollector) Collect(sClient utils.SpectrumClient, ch chan<- 
 
 	status := jsonCallhome.Get("status").String()
 	connection := jsonCallhome.Get("connection").String()
+
 	value := 0
+	// 0: status --enabled, connection --active;
+	// 1: status --disabled
+	// 2: status --enabled, connection in ["error", "untried"]
 	if status != "enabled" {
 		value ^= 1
 	} else {
