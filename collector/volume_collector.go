@@ -40,6 +40,7 @@ func (c *volumeCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	volumeResp, err := sClient.CallSpectrumAPI("lsvdisk", true)
 	if err != nil {
 		log.Errorf("Executing lsvdisk cmd failed: %s", err.Error())
+		return err
 	}
 	log.Debugln("Response of lsvdisk: ", volumeResp)
 	// This is a sample output of lsvdisk

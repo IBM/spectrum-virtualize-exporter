@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -393,8 +394,35 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	mDiskResp, err := sClient.CallSpectrumAPI("lsmdisk", true)
 	if err != nil {
 		log.Errorf("Executing lsmdisk cmd failed: %s", err.Error())
+		return err
 	}
 	log.Debugln("Response of lsmdisk: ", mDiskResp)
+	/* 	This is a sample output of lsmdisk
+	[
+	    {
+	        "id": "0",
+	        "name": "mdisk0",
+	        "status": "online",
+	        "mode": "array",
+	        "mdisk_grp_id": "0",
+	        "mdisk_grp_name": "Pool0",
+	        "capacity": "99.1TB",
+	        "ctrl_LUN_#": "",
+	        "controller_name": "",
+	        "UID": "",
+	        "tier": "tier0_flash",
+	        "encrypt": "no",
+	        "site_id": "",
+	        "site_name": "",
+	        "distributed": "yes",
+	        "dedupe": "no",
+	        "over_provisioned": "yes",
+	        "supports_unmap": "yes"
+	    }
+	] */
+	if !gjson.Valid(mDiskResp) {
+		return fmt.Errorf("invalid json for lsmdisk:\n%v", mDiskResp)
+	}
 	mDisks := gjson.Parse(mDiskResp).Array()
 	var drive_thin_savings uint64
 	for _, mdisk := range mDisks {
@@ -402,31 +430,34 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 		mDiskDetailResp, err := sClient.CallSpectrumAPI("lsmdisk/"+mdisk_name, true)
 		if err != nil {
 			log.Errorf("Executing lsmdisk/%s cmd failed: %s", mdisk_name, err)
+			return err
 		}
-		log.Debugln("Response of lsmdisk/%s: ", mdisk_name, mDiskResp)
-
-		// {
-		// 	"id": "0",
-		// 	"name": "mdisk0",
-		// 	"status": "online",
-		// 	"mode": "array",
-		// 	"mdisk_grp_id": "0",
-		// 	"mdisk_grp_name": "Pool0",
-		// 	"capacity": "99.1TB",
-		// 	"redundancy": "2",
-		// 	"distributed": "yes",
-		// 	"drive_class_id": "0",
-		// 	"drive_count": "8",
-		// 	"dedupe": "no",
-		// 	"over_provisioned": "yes",
-		// 	"provisioning_group_id": "0",
-		// 	"physical_capacity": "42.90TB",
-		// 	"physical_free_capacity": "42.73TB",
-		// 	"write_protected": "no",
-		// 	"allocated_capacity": "7.13TB",
-		// 	"effective_used_capacity": "181.33GB"
-		// }
-
+		log.Debugln("Response of lsmdisk/", mdisk_name, ": ", mDiskDetailResp)
+		/* This is a sample output of lsmdisk/mdisk0
+		{
+			"id": "0",
+			"name": "mdisk0",
+			"status": "online",
+			"mode": "array",
+			"mdisk_grp_id": "0",
+			"mdisk_grp_name": "Pool0",
+			"capacity": "99.1TB",
+			"redundancy": "2",
+			"distributed": "yes",
+			"drive_class_id": "0",
+			"drive_count": "8",
+			"dedupe": "no",
+			"over_provisioned": "yes",
+			"provisioning_group_id": "0",
+			"physical_capacity": "42.90TB",
+			"physical_free_capacity": "42.73TB",
+			"write_protected": "no",
+			"allocated_capacity": "7.13TB",
+			"effective_used_capacity": "181.33GB"
+		} */
+		if !gjson.Valid(mDiskDetailResp) {
+			return fmt.Errorf("invalid json for lscloudcallhome:\n%v", mDiskDetailResp)
+		}
 		allocated_capapcity_bytes, _ := utils.ToBytes(gjson.Get(mDiskDetailResp, "allocated_capacity").String())
 		effective_used_capacity_bytes, _ := utils.ToBytes(gjson.Get(mDiskDetailResp, "effective_used_capacity").String())
 		thin_saving := allocated_capapcity_bytes - effective_used_capacity_bytes

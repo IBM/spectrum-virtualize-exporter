@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"fmt"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
@@ -109,31 +111,35 @@ func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- p
 	systemStatsResp, err := sClient.CallSpectrumAPI("lssystemstats", true)
 	if err != nil {
 		log.Errorf("Executing lssystemstats cmd failed: %s", err.Error())
+		return err
 	}
 	log.Debugln("Response of lssystemstats: ", systemStatsResp)
-	// This is a sample output of lssystemstats
-	// 	[
-	//     {
-	//         "stat_name": "compression_cpu_pc",
-	//         "stat_current": "0",
-	//         "stat_peak": "0",
-	//         "stat_peak_time": "181217033223"
-	//     },
-	//     {
-	//         "stat_name": "cpu_pc",
-	//         "stat_current": "1",
-	//         "stat_peak": "1",
-	//         "stat_peak_time": "181217033223"
-	//     },
-	//     {
-	//         "stat_name": "fc_mb",
-	//         "stat_current": "0",
-	//         "stat_peak": "0",
-	//         "stat_peak_time": "181217033223"
-	//     },
-	//     .......
-	//     .........
-	// ]
+	if !gjson.Valid(systemStatsResp) {
+		return fmt.Errorf("invalid json for lscloudcallhome:\n%v", systemStatsResp)
+	}
+	/* This is a sample output of lssystemstats
+		[
+	    {
+	        "stat_name": "compression_cpu_pc",
+	        "stat_current": "0",
+	        "stat_peak": "0",
+	        "stat_peak_time": "181217033223"
+	    },
+	    {
+	        "stat_name": "cpu_pc",
+	        "stat_current": "1",
+	        "stat_peak": "1",
+	        "stat_peak_time": "181217033223"
+	    },
+	    {
+	        "stat_name": "fc_mb",
+	        "stat_current": "0",
+	        "stat_peak": "0",
+	        "stat_peak_time": "181217033223"
+	    },
+	    .......
+	    .........
+	] */
 
 	systemStats := gjson.Parse(systemStatsResp).Array()
 	for i, systemStat := range systemStats {
