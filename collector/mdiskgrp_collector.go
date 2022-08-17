@@ -87,6 +87,7 @@ func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prom
 	mDiskGrpResp, err := sClient.CallSpectrumAPI("lsmdiskgrp", true)
 	if err != nil {
 		log.Errorf("Executing lsmdiskgrp cmd failed: %s", err.Error())
+		return err
 	}
 	log.Debugln("Response of lsmdiskgrp: ", mDiskGrpResp)
 	// This is a sample output of lsmdiskgrp

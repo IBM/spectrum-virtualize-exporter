@@ -107,6 +107,7 @@ func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- pro
 	nodeStatsResp, err := sClient.CallSpectrumAPI("lsnodestats", true)
 	if err != nil {
 		log.Errorf("Executing lsnodestats cmd failed: %s", err.Error())
+		return err
 	}
 	log.Debugln("Response of lsnodestats: ", nodeStatsResp)
 	// This is a sample output of lsnodestats

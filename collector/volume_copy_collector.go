@@ -41,6 +41,7 @@ func (c *volumeCopyCollector) Collect(sClient utils.SpectrumClient, ch chan<- pr
 	volumeCopyResp, err := sClient.CallSpectrumAPI("lsvdiskcopy", true)
 	if err != nil {
 		log.Errorf("Executing lsvdiskcopy cmd failed: %s", err.Error())
+		return err
 	}
 	log.Debugln("Response of lsvdiskcopy: ", volumeCopyResp)
 	// This is a sample output of lsvdiskcopy

@@ -38,6 +38,7 @@ func (c *mdiskCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 	mDiskResp, err := sClient.CallSpectrumAPI("lsmdisk", true)
 	if err != nil {
 		log.Errorf("Executing lsmdisk cmd failed: %s", err.Error())
+		return err
 	}
 	log.Debugln("Response of lsmdisk: ", mDiskResp)
 	//This is a sample output of lsmdisk
