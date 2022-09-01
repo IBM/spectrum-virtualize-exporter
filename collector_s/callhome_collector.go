@@ -58,6 +58,9 @@ func (c *callhomeInfoCollector) Collect(sClient utils.SpectrumClient, ch chan<- 
 
 	status := jsonCallhome.Get("status").String()
 	connection := jsonCallhome.Get("connection").String()
+	if connection == "" {
+		connection = "unknown"
+	}
 
 	value := 0
 	// 0: status --enabled, connection --active;
