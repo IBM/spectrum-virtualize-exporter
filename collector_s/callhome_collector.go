@@ -1,6 +1,8 @@
 package collector_s
 
 import (
+	"fmt"
+
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
@@ -38,17 +40,20 @@ func (c *callhomeInfoCollector) Collect(sClient utils.SpectrumClient, ch chan<- 
 	respData, err := sClient.CallSpectrumAPI("lscloudcallhome", true)
 	if err != nil {
 		log.Errorf("Executing lscloudcallhome cmd failed: %s", err.Error())
+		return err
 	}
 	log.Debugln("Response of lscloudcallhome: ", respData)
-	// This is a sample output of lscloudcallhome
-	//	{
-	//		"status": "disabled",          ["disabled", "enabled"]
-	//		"connection": "",              ["active", "error", "untried"]
-	//		"error_sequence_number": "",
-	//		"last_success": "220308065924",
-	//		"last_failure": "220308065307"
-	//	}
-
+	/* This is a sample output of lscloudcallhome
+	{
+		"status": "disabled",          // ["disabled", "enabled"]
+		"connection": "",              // ["active", "error", "untried"]
+		"error_sequence_number": "",
+		"last_success": "220308065924",
+		"last_failure": "220308065307"
+	} */
+	if !gjson.Valid(respData) {
+		return fmt.Errorf("invalid json for lscloudcallhome:\n%v", respData)
+	}
 	jsonCallhome := gjson.Parse(respData)
 
 	status := jsonCallhome.Get("status").String()

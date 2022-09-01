@@ -10,7 +10,7 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 
 ## Usage
 
-| Flag | Description | Default Value | 
+| Flag | Description | Default Value |
 | --- | --- | --- |
 | config.file | Path to configuration file | spectrumVirtualize.yml |
 | web.telemetry-path | Path under which to expose metrics | /metrics |
@@ -27,7 +27,8 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 * Building:
   
   * binary
-    ```
+
+    ```bash
     export GOPATH=your_gopath
     cd your_gopath
     git clone git@github.ibm.com:ZaaS/spectrum-virtualize-exporter.git
@@ -35,19 +36,23 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
     go build
     go install (Optional but recommended. This step will copy spectrum-virtualize-exporter binary package into $GOPATH/bin directory. It will be connvenient to copy the package to Monitoring docker image)
     ```
+
   * docker image
-    ```
+
+    ```bash
     docker build -t spectrum-virtualize-exporter .
     ```
 
 * Running:
   * Run Locally
-    ```
+
+    ```bash
     ./spectrum-virtualize-exporter --config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml
     ```
 
   * Run as docker image
-    ```
+
+    ```bash
     docker run -it -d -p 9119:9119 -v /etc/spectrumVirtualize/spectrumVirtualize.yml:/etc/spectrumVirtualize/spectrumVirtualize.yml --name spectrum-virtualize-exporter spectrum-virtualize-exporter --config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml --log.level debug
     ```
 
@@ -56,7 +61,8 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 ## Configuration
 
 The spectrum-virtualize-exporter reads from [spectrumVirtualize.yml](spectrumVirtualize.yml) config file by default. Edit your config YAML file, Enter the IP address of the storage device, your username, and your password there. 
-```
+
+```bash
 targets:
   - ipAddress: IP address
     userid: user
@@ -76,6 +82,14 @@ targets:
 | lsmdiskgrp | Get a detailed view of storage pools that are visible to the clustered system. | Disabled | [List](docs/lsmdiskgrp_metrics.md) | 16 |
 | lsvdisk | Get detailed view of volumes that are recognized by the system. | Disabled | [List](docs/lsvdisk_metrics.md) | 1 |
 | lsvdiskcopy | Get volume copy information. | Disabled | [List](docs/lsvdiskcopy_metrics.md) | 1 |
+
+## Exported Settings
+
+| CLI Command | Description | Default | Metrics | Total number of metrics |
+| --- | --- | --- | --- | --- |
+| - | Metrics from the exporter itself. | Disabled | [List](docs/exporter_metrics.md) | 35 |
+| lscloudcallhome | The status of the Call Home information. | Enabled | [List](docs/lscloudcallhome_metrics.md) | 1 |
+| lsenclosurebattery | The information about the batteries. | Enabled | [List](docs/lsenclosurebattery_metrics.md) | 2 |
 
 ## References
 
