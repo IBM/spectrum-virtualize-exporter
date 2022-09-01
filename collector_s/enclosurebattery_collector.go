@@ -18,10 +18,10 @@ var (
 
 func init() {
 	registerCollector("lsenclosurebattery", defaultEnabled, NewEnclosureBatteryCollector)
-	labelnames_status := []string{"target", "resource", "enclosure_id", "battery_id", "status"}
-	labelnames_eolw := []string{"target", "resource", "enclosure_id", "battery_id", "end_of_life_warning"}
-	battery_status = prometheus.NewDesc(prefix_enclosurebattery+"status", "Identifies the status of the battery. 0-online; 1-degraded; 2-offline.", labelnames_status, nil)
-	battery_end_of_life_warning = prometheus.NewDesc(prefix_enclosurebattery+"end_of_life_warning", "Identifies the battery's end of life. Replace the battery if yes.", labelnames_eolw, nil)
+	labelnames_status := []string{"target", "resource", "enclosure_id", "battery_id"}
+	labelnames_eolw := []string{"target", "resource", "enclosure_id", "battery_id"}
+	battery_status = prometheus.NewDesc(prefix_enclosurebattery+"status", "Identifies the status of the battery. 0-online; 1-offline; 2-degraded.", labelnames_status, nil)
+	battery_end_of_life_warning = prometheus.NewDesc(prefix_enclosurebattery+"end_of_life_warning", "Identifies the battery's end of life. Replace the battery if yes. 0-no; 1-yes.", labelnames_eolw, nil)
 }
 
 //enclosureBatteryCollector collects enclosurebattery setting metrics
@@ -76,17 +76,20 @@ func (c *enclosureBatteryCollector) Collect(sClient utils.SpectrumClient, ch cha
 	jsonBatteries.ForEach(func(key, battery gjson.Result) bool {
 		enclosure_id := battery.Get("enclosure_id").String()
 		battery_id := battery.Get("battery_id").String()
-		status := battery.Get("status").String()                           // ["online", "degraded", "offline"]
+		status := battery.Get("status").String()                           // ["online", "offline", "degraded"]
 		end_of_life_warning := battery.Get("end_of_life_warning").String() // ["yes", "no"]
+
 		v_status := 0
 		switch status {
 		case "online":
 			v_status = 0
-		case "degraded":
-			v_status = 1
 		case "offline":
+			v_status = 1
+		case "degraded":
 			v_status = 2
 		}
+		ch <- prometheus.MustNewConstMetric(battery_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, enclosure_id, battery_id)
+
 		v_eolw := 0
 		switch end_of_life_warning {
 		case "no":
@@ -94,12 +97,10 @@ func (c *enclosureBatteryCollector) Collect(sClient utils.SpectrumClient, ch cha
 		case "yes":
 			v_eolw = 1
 		}
-
-		ch <- prometheus.MustNewConstMetric(battery_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, enclosure_id, battery_id, status)
-		ch <- prometheus.MustNewConstMetric(battery_end_of_life_warning, prometheus.GaugeValue, float64(v_eolw), sClient.IpAddress, sClient.Hostname, enclosure_id, battery_id, end_of_life_warning)
+		ch <- prometheus.MustNewConstMetric(battery_end_of_life_warning, prometheus.GaugeValue, float64(v_eolw), sClient.IpAddress, sClient.Hostname, enclosure_id, battery_id)
 		return true
 	})
 
 	log.Debugln("Leaving enclosurebattery collector.")
-	return err
+	return nil
 }

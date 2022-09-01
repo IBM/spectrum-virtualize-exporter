@@ -89,6 +89,7 @@ targets:
 | --- | --- | --- | --- | --- |
 | - | Metrics from the exporter itself. | Disabled | [List](docs/exporter_metrics.md) | 35 |
 | lscloudcallhome | The status of the Call Home information. | Enabled | [List](docs/lscloudcallhome_metrics.md) | 1 |
+| lsenclosure | The summary of the enclosures including canister and PSU. | Enabled | [List](docs/lsenclosure_metrics.md) | 3 |
 | lsenclosurebattery | The information about the batteries. | Enabled | [List](docs/lsenclosurebattery_metrics.md) | 2 |
 
 ## References

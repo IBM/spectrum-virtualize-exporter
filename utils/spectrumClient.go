@@ -22,14 +22,13 @@ type SpectrumClient struct {
 	VerifyCert     bool
 	AuthTokenCache *AuthToken
 	AuthTokenMutex *sync.Mutex
-	ColCounter     *Counter //shared cross all SpectrumClient of a target
+	ColCounter     *Counter //shared cross all SpectrumClients of a target
 }
 
 type AuthToken struct {
-	Token        string
-	Hostname     string
-	UpdatedTime  time.Time
-	VerifiedTime time.Time
+	Token      string
+	Hostname   string
+	UpdateTime time.Time
 }
 
 type Counter struct {
@@ -39,39 +38,42 @@ type Counter struct {
 }
 
 func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
+	defer s.AuthTokenMutex.Unlock()
+	s.AuthTokenMutex.Lock()
+
 	// A single session lasts a maximum of two active hours or thirty inactive minutes, whichever occurs first.
 	retVal := 0 // 0: failed, 1: success
-	if time.Since(s.AuthTokenCache.UpdatedTime).Seconds() < 10 {
-		log.Debugln("Return existing token updated in 10s")
-		retVal = 1
-		return *s.ColCounter, retVal
-	}
-	if needVerify && s.AuthTokenCache.Token != "" {
-		if time.Since(s.AuthTokenCache.VerifiedTime).Minutes() < 118 {
-			log.Debugf("Return existing token verified in 30m")
-			retVal = 1
-		} else {
-			log.Debugln("Verify existing token")
-			_, err := s.CallSpectrumAPI("lssystem", false)
-			if err == nil {
-				log.Debugln("Existing token verified successfully")
-				//s.Hostname = gjson.Get(systemMetrics, "name").String()
-				s.AuthTokenCache.VerifiedTime = time.Now()
+	if s.AuthTokenCache.Token != "" {
+		if time.Since(s.AuthTokenCache.UpdateTime).Seconds() < 28 {
+			log.Debugln("Return existing token updated in 28s")
+			return *s.ColCounter, 1
+		}
+
+		if needVerify {
+			updatePassedMins := time.Since(s.AuthTokenCache.UpdateTime).Minutes()
+			if updatePassedMins < 118 {
+				/* 			log.Debugln("Verify existing token")
+				   			_, err := s.CallSpectrumAPI("lssystem", false)
+				   			if err == nil {
+				   				log.Debugln("Existing token verified successfully")
+				   				retVal = 1
+				   			} else {
+				   				log.Debugln("Existing token validation failed")
+				   			} */
 				retVal = 1
 			} else {
-				log.Debugln("Existing token validation failed")
+				log.Debugf("It's been %d minutes since the token update", updatePassedMins)
 			}
-		}
-		if retVal == 1 {
-			if s.Hostname == "" {
-				s.Hostname = s.AuthTokenCache.Hostname
+			if retVal == 1 {
+				if s.Hostname == "" {
+					s.Hostname = s.AuthTokenCache.Hostname
+				}
+				log.Debugf("Return cached token updated in %d minutes", updatePassedMins)
+				return *s.ColCounter, retVal
 			}
-			return *s.ColCounter, retVal
 		}
 	}
 	// Start to renew auth token
-	defer s.AuthTokenMutex.Unlock()
-	s.AuthTokenMutex.Lock()
 	lc := 0
 	for lc = 0; lc < 3; lc++ {
 		log.Debugln("Getting authToken for ", s.IpAddress)
@@ -84,10 +86,10 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 		log.Debugln("Got new authToken for ", s.IpAddress)
 
 		s.AuthTokenCache.Token = authtoken
-		if !s.AuthTokenCache.UpdatedTime.IsZero() {
-			s.ColCounter.AuthTokenRenewIntervalSeconds = int(time.Since(s.AuthTokenCache.UpdatedTime).Seconds())
+		if !s.AuthTokenCache.UpdateTime.IsZero() {
+			s.ColCounter.AuthTokenRenewIntervalSeconds = int(time.Since(s.AuthTokenCache.UpdateTime).Seconds())
 		}
-		s.AuthTokenCache.UpdatedTime = time.Now()
+		s.AuthTokenCache.UpdateTime = time.Now()
 
 		//test to make sure that current auth token is good
 		if needVerify {
@@ -115,7 +117,6 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 				lc++
 			} else { //auth token verification succeeded
 				log.Debugln("New auth token verified successfully for ", s.IpAddress)
-				s.AuthTokenCache.VerifiedTime = time.Now()
 				break
 			}
 		} else {
