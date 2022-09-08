@@ -1,4 +1,4 @@
-# Call Home information Metrics
+# Call Home Information Metrics
 
 ## Metrics Definition
 
