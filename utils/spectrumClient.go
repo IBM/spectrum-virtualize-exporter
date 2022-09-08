@@ -62,13 +62,13 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 				   			} */
 				retVal = 1
 			} else {
-				log.Debugf("It's been %d minutes since the token update", updatePassedMins)
+				log.Debugf("It's been %.0f minutes since the token update", updatePassedMins)
 			}
 			if retVal == 1 {
 				if s.Hostname == "" {
 					s.Hostname = s.AuthTokenCache.Hostname
 				}
-				log.Debugf("Return cached token updated in %d minutes", updatePassedMins)
+				log.Debugf("Return cached token updated in %.0f minutes", updatePassedMins)
 				return *s.ColCounter, retVal
 			}
 		}
@@ -212,7 +212,7 @@ func (s *SpectrumClient) CallSpectrumAPI(restCmd string, autoRenewToken bool) (b
 		if success == 0 {
 			return "", fmt.Errorf("\nFailed to auto renew auth token for %s", s.IpAddress)
 		}
-		log.Debugln("Auto renewed token and retry rest cmd.")
+		log.Infoln("Auto renewed token and retry rest cmd.")
 		req, _ := http.NewRequest("POST", requestURL, nil)
 		req.Header.Add("Accept", "application/json")
 		req.Header.Add("Content-Type", "application/json")

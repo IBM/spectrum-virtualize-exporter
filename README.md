@@ -6,7 +6,7 @@ collects metrics from storage solutions which are built with the
 Storage solutions built with the IBM Spectrum Virtualize software are the
 [IBM FlashSystem V9000 system](https://www.ibm.com/support/knowledgecenter/STKMQV_8.2.1/com.ibm.storage.vflashsystem9000.8.2.1.doc/svc_svcovr_1bcfiq.html),
 the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume-controller) and
- the [IBM Storwize Family](https://www.ibm.com/it-infrastructure/storage/storwize<Paste>)
+ the [IBM Storwize Family](https://www.ibm.com/it-infrastructure/storage/storwize\<Paste>)
 
 ## Usage
 
@@ -56,11 +56,11 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
     docker run -it -d -p 9119:9119 -v /etc/spectrumVirtualize/spectrumVirtualize.yml:/etc/spectrumVirtualize/spectrumVirtualize.yml --name spectrum-virtualize-exporter spectrum-virtualize-exporter --config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml --log.level debug
     ```
 
-  * Visit http://localhost:9119/metrics
+  * Visit <http://localhost:9119/metrics>
 
 ## Configuration
 
-The spectrum-virtualize-exporter reads from [spectrumVirtualize.yml](spectrumVirtualize.yml) config file by default. Edit your config YAML file, Enter the IP address of the storage device, your username, and your password there. 
+The spectrum-virtualize-exporter reads from [spectrumVirtualize.yml](spectrumVirtualize.yml) config file by default. Edit your config YAML file, Enter the IP address of the storage device, your username, and your password there.
 
 ```bash
 targets:
@@ -88,9 +88,9 @@ targets:
 | CLI Command | Description | Default | Metrics | Total number of metrics |
 | --- | --- | --- | --- | --- |
 | - | Metrics from the exporter itself. | Disabled | [List](docs/exporter_metrics.md) | 35 |
-| lscloudcallhome | The status of the Call Home information. | Enabled | [List](docs/lscloudcallhome_metrics.md) | 1 |
-| lsenclosure | The summary of the enclosures including canister and PSU. | Enabled | [List](docs/lsenclosure_metrics.md) | 3 |
-| lsenclosurebattery | The information about the batteries. | Enabled | [List](docs/lsenclosurebattery_metrics.md) | 2 |
+| lscloudcallhome | The status of the Call Home information. | Enabled | [List](docs/lscloudcallhome_settings.md) | 1 |
+| lsenclosure | The summary of the enclosures including canister and PSU. | Enabled | [List](docs/lsenclosure_settings.md) | 3 |
+| lsenclosurebattery | The information about the batteries. | Enabled | [List](docs/lsenclosurebattery_settings.md) | 2 |
 
 ## References
 
