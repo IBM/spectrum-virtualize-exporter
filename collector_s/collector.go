@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 	kingpin "gopkg.in/alecthomas/kingpin.v2"
 )
@@ -29,6 +28,7 @@ var (
 	sClients                   map[string]*utils.SpectrumClient
 	factories                  = make(map[string]func() (Collector, error))
 	collectorState             = make(map[string]*bool)
+	logger                     = *utils.SpectrumLogger()
 )
 
 type SVCCollector interface {
@@ -75,16 +75,16 @@ func NewSVCCollector(targets []utils.Target, tokenCaches map[string]*utils.AuthT
 	once.Do(func() {
 		hosts = targets
 		collectors = make(map[string]Collector)
-		log.Infof("Enabled setting collectors:")
+		logger.Infof("Enabled setting collectors:")
 		for key, enabled := range collectorState {
 			if *enabled {
 				collector, err = factories[key]()
 				if err != nil {
-					log.Errorln("Failed to load setting collector: ", key)
+					logger.Errorln("Failed to load setting collector: ", key)
 					return
 				}
 				collectors[key] = collector
-				log.Infof(" - %s", key)
+				logger.Infof(" - %s", key)
 			}
 		}
 		sClients = make(map[string]*utils.SpectrumClient)
@@ -141,12 +141,12 @@ func (c *svcCollector) collectForHost(host utils.Target, ch chan<- prometheus.Me
 	counter, success = sClients[host.IpAddress].RenewAuthToken(true)
 
 	if success == 0 {
-		log.Errorln("No valid auth token, skip executing setting collectors")
+		logger.Errorln("No valid auth token, skip executing setting collectors")
 	} else {
 		for k, col := range collectors {
 			err := col.Collect(*spectrumClient, ch)
 			if err != nil && err.Error() != "EOF" {
-				log.Errorln(k + ": " + err.Error())
+				logger.Errorln(k + ": " + err.Error())
 			}
 		}
 	}

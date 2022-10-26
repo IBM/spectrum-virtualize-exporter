@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
 
@@ -38,7 +37,7 @@ func (*ipCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect() collects metrics from Spectrum Virtualize Restful API
 func (c *ipCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering IP collector ...")
+	logger.Debugln("Entering IP collector ...")
 	hosts := make(map[string]string)
 	str := sClient.IpAddress[:len(sClient.IpAddress)-1]
 	hosts["PSYS"] = sClient.IpAddress
@@ -50,11 +49,11 @@ func (c *ipCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus
 		cmd := fmt.Sprintf("ping -c 1 -w 2 %s> /dev/null 2>&1 && echo $? || echo $?", ip_address)
 		respData, err := exec.Command("/bin/sh", "-c", cmd).Output()
 		if err != nil {
-			log.Errorf("Ping %s failed: %s", ip_address, err.Error())
+			logger.Errorf("Ping %s failed: %s", ip_address, err.Error())
 			return err
 		}
 		status := strings.TrimRight(string(respData), "\n")
-		log.Debugf("Ping %s: %s", ip_address, status)
+		logger.Debugf("Ping %s: %s", ip_address, status)
 
 		v_status := 0
 		switch status {
@@ -66,6 +65,6 @@ func (c *ipCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus
 		ch <- prometheus.MustNewConstMetric(ip_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, ip_name, ip_address)
 	}
 
-	log.Debugln("Leaving IP collector.")
+	logger.Debugln("Leaving IP collector.")
 	return nil
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -37,13 +36,13 @@ func (*hostCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect() collects metrics from Spectrum Virtualize Restful API
 func (c *hostCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering host collector ...")
+	logger.Debugln("Entering host collector ...")
 	respData, err := sClient.CallSpectrumAPI("lshost", true)
 	if err != nil {
-		log.Errorf("Executing lshost cmd failed: %s", err.Error())
+		logger.Errorf("Executing lshost cmd failed: %s", err.Error())
 		return err
 	}
-	log.Debugln("Response of lshost: ", respData)
+	logger.Debugln("Response of lshost: ", respData)
 	/* This is a sample output of lshost
 	[
 	    {
@@ -85,6 +84,6 @@ func (c *hostCollector) Collect(sClient utils.SpectrumClient, ch chan<- promethe
 		return true
 	})
 
-	log.Debugln("Leaving host collector.")
+	logger.Debugln("Leaving host collector.")
 	return nil
 }

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -42,13 +41,13 @@ func (*DriveCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering drive collector ...")
+	logger.Debugln("Entering drive collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsdrive", true)
 	if err != nil {
-		log.Errorf("Executing lsdrive cmd failed: %s", err.Error())
+		logger.Errorf("Executing lsdrive cmd failed: %s", err.Error())
 		return err
 	}
-	log.Debugln("Response of lsdrive: ", respData)
+	logger.Debugln("Response of lsdrive: ", respData)
 	/* This is a sample output of lsdrive
 	[
 	    {
@@ -97,10 +96,10 @@ func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 	for _, drive_id := range drives {
 		resp, err := sClient.CallSpectrumAPI("lsdrive/"+drive_id, true)
 		if err != nil {
-			log.Errorf("Executing lsdrive/%s cmd failed: %s", drive_id, err.Error())
+			logger.Errorf("Executing lsdrive/%s cmd failed: %s", drive_id, err.Error())
 			return err
 		}
-		log.Debugf("Response of lsdrive/%s: %s", drive_id, resp)
+		logger.Debugf("Response of lsdrive/%s: %s", drive_id, resp)
 		/* This is a sample output of lsdrive/<id>
 		{
 		    "id": "0",
@@ -163,6 +162,6 @@ func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 		ch <- prometheus.MustNewConstMetric(drive_firmware_level, prometheus.GaugeValue, float64(v_firmware_consistency), sClient.IpAddress, sClient.Hostname, drive_id, firmware_level)
 	}
 
-	log.Debugln("Leaving drive collector.")
+	logger.Debugln("Leaving drive collector.")
 	return nil
 }

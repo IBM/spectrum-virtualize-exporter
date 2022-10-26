@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -36,13 +35,13 @@ func (*callhomeInfoCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *callhomeInfoCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering Callhome collector ...")
+	logger.Debugln("Entering Callhome collector ...")
 	respData, err := sClient.CallSpectrumAPI("lscloudcallhome", true)
 	if err != nil {
-		log.Errorf("Executing lscloudcallhome cmd failed: %s", err.Error())
+		logger.Errorf("Executing lscloudcallhome cmd failed: %s", err.Error())
 		return err
 	}
-	log.Debugln("Response of lscloudcallhome: ", respData)
+	logger.Debugln("Response of lscloudcallhome: ", respData)
 	/* This is a sample output of lscloudcallhome
 	{
 		"status": "disabled",          // ["disabled", "enabled"]
@@ -76,6 +75,6 @@ func (c *callhomeInfoCollector) Collect(sClient utils.SpectrumClient, ch chan<- 
 
 	ch <- prometheus.MustNewConstMetric(callhomeInfo, prometheus.GaugeValue, float64(value), sClient.IpAddress, sClient.Hostname, status, connection)
 
-	log.Debugln("Leaving Callhome collector.")
+	logger.Debugln("Leaving Callhome collector.")
 	return err
 }

@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -41,13 +40,13 @@ func (*enclosureBatteryCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *enclosureBatteryCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering enclosurebattery collector ...")
+	logger.Debugln("Entering enclosurebattery collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsenclosurebattery", true)
 	if err != nil {
-		log.Errorf("Executing lsenclosurebattery cmd failed: %s", err.Error())
+		logger.Errorf("Executing lsenclosurebattery cmd failed: %s", err.Error())
 		return err
 	}
-	log.Debugln("Response of lsenclosurebattery: ", respData)
+	logger.Debugln("Response of lsenclosurebattery: ", respData)
 	/* This is a sample output of lsenclosurebattery
 	[
 		{
@@ -101,6 +100,6 @@ func (c *enclosureBatteryCollector) Collect(sClient utils.SpectrumClient, ch cha
 		return true
 	})
 
-	log.Debugln("Leaving enclosurebattery collector.")
+	logger.Debugln("Leaving enclosurebattery collector.")
 	return nil
 }

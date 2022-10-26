@@ -30,6 +30,7 @@ var (
 	authTokenCaches  map[string]*utils.AuthToken = make(map[string]*utils.AuthToken)
 	authTokenMutexes map[string]*sync.Mutex      = make(map[string]*sync.Mutex)
 	colCounters      map[string]*utils.Counter   = make(map[string]*utils.Counter)
+	logger           log.Logger                  = *utils.SpectrumLogger()
 )
 
 type handler struct {
@@ -49,11 +50,11 @@ func main() {
 	kingpin.Parse()
 
 	//Bail early if the config is bad.
-	log.Infoln("Loading config from", *configFile)
+	logger.Infoln("Loading config from", *configFile)
 	// var err error
 	c, err := utils.GetConfig(*configFile)
 	if err != nil {
-		log.Fatalf("Error parsing config file: %s", err.Error())
+		logger.Fatalf("Error parsing config file: %s", err.Error())
 	}
 	cfg = c
 	for _, t := range cfg.Targets {
@@ -61,8 +62,8 @@ func main() {
 		authTokenMutexes[t.IpAddress] = &sync.Mutex{}
 		colCounters[t.IpAddress] = &utils.Counter{}
 	}
-	log.Infoln("Starting Spectrum_Virtualize_exporter", version.Info())
-	log.Infoln("Build context", version.BuildContext())
+	logger.Infoln("Starting Spectrum_Virtualize_exporter", version.Info())
+	logger.Infoln("Build context", version.BuildContext())
 	//Launch http services
 	// http.HandleFunc(*metricsContext, handlerMetricRequest)
 	r.Handle(*metricsContext, newHandler(!*disableExporterMetrics))
@@ -71,9 +72,9 @@ func main() {
 	r.HandleFunc("/", rootFunc)
 	// http.Handle(*metricsContext, prometheus.Handler()) // Normal metrics endpoint for Spectrum Virtualize exporter itself.
 
-	log.Infof("Listening for %s on %s\n", *metricsContext, *listenAddress)
-	log.Infof("Listening for %s on %s\n", *settingsContext, *listenAddress)
-	log.Fatal(http.ListenAndServe(*listenAddress, CSRF(r)))
+	logger.Infof("Listening for %s on %s\n", *metricsContext, *listenAddress)
+	logger.Infof("Listening for %s on %s\n", *settingsContext, *listenAddress)
+	logger.Fatal(http.ListenAndServe(*listenAddress, CSRF(r)))
 
 }
 
@@ -138,7 +139,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err != nil {
-			log.Warnln("Couldn't create handler:", err)
+			logger.Warnln("Couldn't create handler:", err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte(fmt.Sprintf("Couldn't create handler: %s", err.Error())))
 			return
@@ -156,7 +157,7 @@ func (h *handler) metricsHandler(targets ...utils.Target) (http.Handler, error) 
 	// registry.MustRegister(version.NewCollector("Spectrum-Virtualize-Exporter"))
 
 	if err != nil {
-		log.Fatalf("Couldn't create metrics collector: %s", err.Error())
+		logger.Fatalf("Couldn't create metrics collector: %s", err.Error())
 	}
 
 	if err := registry.Register(sc); err != nil {
@@ -187,7 +188,7 @@ func (h *handler) settingsHandler(targets ...utils.Target) (http.Handler, error)
 	// registry.MustRegister(version.NewCollector("Spectrum-Virtualize-Exporter"))
 
 	if err != nil {
-		log.Fatalf("Couldn't create setting collector: %s", err.Error())
+		logger.Fatalf("Couldn't create setting collector: %s", err.Error())
 	}
 
 	if err := registry.Register(sc); err != nil {
