@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -37,13 +36,13 @@ func (*mdiskCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect() collects metrics from Spectrum Virtualize Restful API
 func (c *mdiskCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering MDisk collector ...")
+	logger.Debugln("Entering MDisk collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsmdisk", true)
 	if err != nil {
-		log.Errorf("Executing lsmdisk cmd failed: %s", err.Error())
+		logger.Errorf("Executing lsmdisk cmd failed: %s", err.Error())
 		return err
 	}
-	log.Debugln("Response of lsmdisk: ", respData)
+	logger.Debugln("Response of lsmdisk: ", respData)
 	/* This is a sample output of lsmdisk
 	[
 		{
@@ -99,6 +98,6 @@ func (c *mdiskCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 		return true
 	})
 
-	log.Debugln("Leaving MDisk collector.")
+	logger.Debugln("Leaving MDisk collector.")
 	return nil
 }

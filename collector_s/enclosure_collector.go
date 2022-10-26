@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -46,13 +45,13 @@ func (*enclosureCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *enclosureCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering enclosure collector ...")
+	logger.Debugln("Entering enclosure collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsenclosure", true)
 	if err != nil {
-		log.Errorf("Executing lsenclosure cmd failed: %s", err.Error())
+		logger.Errorf("Executing lsenclosure cmd failed: %s", err.Error())
 		return err
 	}
-	log.Debugln("Response of lsenclosure: ", respData)
+	logger.Debugln("Response of lsenclosure: ", respData)
 	/* This is a sample output of lsenclosure
 	[
 	    {
@@ -100,28 +99,28 @@ func (c *enclosureCollector) Collect(sClient utils.SpectrumClient, ch chan<- pro
 
 		i_canister_total, err := strconv.Atoi(canister_total)
 		if err != nil {
-			log.Errorf("Parsing total_canister as int failed: %s", err.Error())
+			logger.Errorf("Parsing total_canister as int failed: %s", err.Error())
 		}
 		i_canister_online, err := strconv.Atoi(canister_online)
 		if err != nil {
-			log.Errorf("Parsing online_canister as int failed: %s", err.Error())
+			logger.Errorf("Parsing online_canister as int failed: %s", err.Error())
 		}
 		i_canister_offline := i_canister_total - i_canister_online
 		ch <- prometheus.MustNewConstMetric(enclosure_canister, prometheus.GaugeValue, float64(i_canister_offline), sClient.IpAddress, sClient.Hostname, enclosure_id, canister_total)
 
 		i_psu_total, err := strconv.Atoi(psu_total)
 		if err != nil {
-			log.Errorf("Parsing total_psu as int failed: %s", err.Error())
+			logger.Errorf("Parsing total_psu as int failed: %s", err.Error())
 		}
 		i_psu_online, err := strconv.Atoi(psu_online)
 		if err != nil {
-			log.Errorf("Parsing online_psu as int failed: %s", err.Error())
+			logger.Errorf("Parsing online_psu as int failed: %s", err.Error())
 		}
 		i_psu_offline := i_psu_total - i_psu_online
 		ch <- prometheus.MustNewConstMetric(enclosure_psu, prometheus.GaugeValue, float64(i_psu_offline), sClient.IpAddress, sClient.Hostname, enclosure_id, psu_total)
 		return true
 	})
 
-	log.Debugln("Leaving enclosure collector.")
+	logger.Debugln("Leaving enclosure collector.")
 	return nil
 }

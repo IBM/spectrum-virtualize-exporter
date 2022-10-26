@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -37,13 +36,13 @@ func (*portfcCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *portfcCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering portfc collector ...")
+	logger.Debugln("Entering portfc collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsportfc", true)
 	if err != nil {
-		log.Errorf("Executing lsportfc cmd failed: %s", err.Error())
+		logger.Errorf("Executing lsportfc cmd failed: %s", err.Error())
 		return err
 	}
-	log.Debugln("Response of lsportfc: ", respData)
+	logger.Debugln("Response of lsportfc: ", respData)
 	/* This is a sample output of lsportfc
 	[
 		{
@@ -104,6 +103,6 @@ func (c *portfcCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 		return true
 	})
 
-	log.Debugln("Leaving portfc collector.")
+	logger.Debugln("Leaving portfc collector.")
 	return nil
 }

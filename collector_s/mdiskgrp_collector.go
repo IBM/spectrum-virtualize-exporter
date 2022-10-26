@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -38,13 +37,13 @@ func (*mdiskgrpCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect() collects metrics from Spectrum Virtualize Restful API
 func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering MDiskgrp collector ...")
+	logger.Debugln("Entering MDiskgrp collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsmdiskgrp", true)
 	if err != nil {
-		log.Errorf("Executing lsmdiskgrp cmd failed: %s", err.Error())
+		logger.Errorf("Executing lsmdiskgrp cmd failed: %s", err.Error())
 		return err
 	}
-	log.Debugln("Response of lsmdiskgrp: ", respData)
+	logger.Debugln("Response of lsmdiskgrp: ", respData)
 	/* This is a sample output of lsmdiskgrp
 	[
 		{
@@ -107,9 +106,9 @@ func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prom
 			}
 			if !found {
 				online_pools = append(online_pools, pool_name)
-				log.Debugf("Appended the '%s' into the online_pools.", pool_name)
+				logger.Debugf("Appended the '%s' into the online_pools.", pool_name)
 			} else {
-				log.Debugf("The '%s' already exists in the online_pools.", pool_name)
+				logger.Debugf("The '%s' already exists in the online_pools.", pool_name)
 			}
 		case "offline":
 			v_status = 1
@@ -121,6 +120,6 @@ func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prom
 		return true
 	})
 
-	log.Debugln("Leaving MDiskgrp collector.")
+	logger.Debugln("Leaving MDiskgrp collector.")
 	return nil
 }

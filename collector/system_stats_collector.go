@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -106,14 +105,14 @@ func (*systemStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	log.Debugln("Entering SystemStats collector ...")
+	logger.Debugln("Entering SystemStats collector ...")
 	labelvalues := []string{sClient.IpAddress, sClient.Hostname}
 	systemStatsResp, err := sClient.CallSpectrumAPI("lssystemstats", true)
 	if err != nil {
-		log.Errorf("Executing lssystemstats cmd failed: %s", err.Error())
+		logger.Errorf("Executing lssystemstats cmd failed: %s", err.Error())
 		return err
 	}
-	log.Debugln("Response of lssystemstats: ", systemStatsResp)
+	logger.Debugln("Response of lssystemstats: ", systemStatsResp)
 	if !gjson.Valid(systemStatsResp) {
 		return fmt.Errorf("invalid json for lscloudcallhome:\n%v", systemStatsResp)
 	}
@@ -146,7 +145,6 @@ func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- p
 		ch <- prometheus.MustNewConstMetric(metrics[i], prometheus.GaugeValue, systemStat.Get("stat_current").Float(), labelvalues...)
 
 	}
-	log.Debugln("Leaving SystemStats collector.")
+	logger.Debugln("Leaving SystemStats collector.")
 	return err
-
 }
