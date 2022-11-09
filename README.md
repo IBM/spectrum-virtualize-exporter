@@ -91,6 +91,13 @@ targets:
 | lscloudcallhome | The status of the Call Home information. | Enabled | [List](docs/lscloudcallhome_settings.md) | 1 |
 | lsenclosure | The summary of the enclosures including canister and PSU. | Enabled | [List](docs/lsenclosure_settings.md) | 3 |
 | lsenclosurebattery | The information about the batteries. | Enabled | [List](docs/lsenclosurebattery_settings.md) | 2 |
+| lsdrive | The configuration information and drive vital product data (VPD). | Enabled | [List](docs/lsdrive_settings.md) | 2 |
+| lshost | The concise information about all the hosts visible to the system. | Enabled | [List](docs/lshost_settings.md) | 1 |
+| lsnodecanister | The node canisters that are part of the system. | Enabled | [List](docs/lsnodecanister_settings.md) | 1 |
+| lsportfc | The status and properties of the Fibre Channel (FC) input/output (I/O) ports for the clustered system. | Enabled | [List](docs/lsportfc_settings.md) | 1 |
+| lsmdisk | The info of managed disks (MDisks) visible to the system. | Enabled | [List](docs/lsmdisk_settings.md) | 1 |
+| lsmdiskgrp | The info of storage pools that are visible to the system. | Enabled | [List](docs/lsmdiskgrp_settings.md) | 1 |
+| - | The connection status of system IPs(PSYS, SSYS, SVC1, SVC2). | Enabled | [List](docs/lsenclosurebattery_settings.md) | 1 |
 
 ## References
 
