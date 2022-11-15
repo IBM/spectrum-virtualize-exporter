@@ -16,8 +16,8 @@ var (
 
 func init() {
 	registerCollector("lshost", defaultEnabled, NewHostCollector)
-	labelnames_status := []string{"target", "resource", "lpar_name"}
-	host_status = prometheus.NewDesc(prefix_host+"status", "LPAR connection status. 0-online/active; 1-inactive; 2-offline; 3-degraded.", labelnames_status, nil)
+	labelnames_status := []string{"target", "resource", "host_name"}
+	host_status = prometheus.NewDesc(prefix_host+"status", "Host connection status. 0-online/active; 1-inactive; 2-offline; 3-degraded.", labelnames_status, nil)
 }
 
 //hostCollector collects host setting metrics
@@ -66,7 +66,7 @@ func (c *hostCollector) Collect(sClient utils.SpectrumClient, ch chan<- promethe
 	}
 	jsonLpars := gjson.Parse(respData)
 	jsonLpars.ForEach(func(key, port gjson.Result) bool {
-		lpar_name := port.Get("name").String()
+		host_name := port.Get("name").String()
 		status := port.Get("status").String() // ["online", "offline", "degraded"]
 
 		v_status := 0
@@ -80,7 +80,7 @@ func (c *hostCollector) Collect(sClient utils.SpectrumClient, ch chan<- promethe
 		case "degraded":
 			v_status = 3
 		}
-		ch <- prometheus.MustNewConstMetric(host_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, lpar_name)
+		ch <- prometheus.MustNewConstMetric(host_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, host_name)
 		return true
 	})
 
