@@ -26,14 +26,14 @@
 ## Sample Metrics
 
 ```txt
-spectrum_drive_status{drive_id="0",resource="SARA-wdc04-03",target="172.16.64.20"} 0
-spectrum_drive_status{drive_id="1",resource="SARA-wdc04-03",target="172.16.64.20"} 0
-spectrum_drive_status{drive_id="2",resource="SARA-wdc04-03",target="172.16.64.20"} 0
-spectrum_drive_status{drive_id="3",resource="SARA-wdc04-03",target="172.16.64.20"} 0
-spectrum_drive_status{drive_id="4",resource="SARA-wdc04-03",target="172.16.64.20"} 0
-spectrum_drive_status{drive_id="5",resource="SARA-wdc04-03",target="172.16.64.20"} 0
-spectrum_drive_status{drive_id="6",resource="SARA-wdc04-03",target="172.16.64.20"} 0
-spectrum_drive_status{drive_id="7",resource="SARA-wdc04-03",target="172.16.64.20"} 0
+spectrum_drive_status{drive_id="0",enclosure_id="1",resource="SARA-wdc04-03",slot_id="1",target="172.16.64.20"} 0
+spectrum_drive_status{drive_id="1",enclosure_id="1",resource="SARA-wdc04-03",slot_id="5",target="172.16.64.20"} 0
+spectrum_drive_status{drive_id="2",enclosure_id="1",resource="SARA-wdc04-03",slot_id="7",target="172.16.64.20"} 0
+spectrum_drive_status{drive_id="3",enclosure_id="1",resource="SARA-wdc04-03",slot_id="6",target="172.16.64.20"} 0
+spectrum_drive_status{drive_id="4",enclosure_id="1",resource="SARA-wdc04-03",slot_id="4",target="172.16.64.20"} 0
+spectrum_drive_status{drive_id="5",enclosure_id="1",resource="SARA-wdc04-03",slot_id="2",target="172.16.64.20"} 0
+spectrum_drive_status{drive_id="6",enclosure_id="1",resource="SARA-wdc04-03",slot_id="3",target="172.16.64.20"} 0
+spectrum_drive_status{drive_id="7",enclosure_id="1",resource="SARA-wdc04-03",slot_id="8",target="172.16.64.20"} 0
 
 spectrum_drive_firmware_level{drive_id="0",firmware_level="1_2_11",resource="SARA-wdc04-03",target="172.16.64.20"} 0
 spectrum_drive_firmware_level{drive_id="1",firmware_level="1_2_11",resource="SARA-wdc04-03",target="172.16.64.20"} 0
