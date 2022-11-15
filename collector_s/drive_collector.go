@@ -18,7 +18,7 @@ var (
 
 func init() {
 	registerCollector("lsdrive", defaultEnabled, NewDriveCollector)
-	labelnames_drive := []string{"target", "resource", "drive_id"}
+	labelnames_drive := []string{"target", "resource", "drive_id", "enclosure_id", "slot_id"}
 	labelnames_firmware := []string{"target", "resource", "drive_id", "firmware_level"}
 	drive_status = prometheus.NewDesc(prefix_drive+"status", "Indicates the summary status of the drive. 0-online; 1-offline; 2-degraded.", labelnames_drive, nil)
 	drive_firmware_level = prometheus.NewDesc(prefix_drive+"firmware_level", "Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.", labelnames_firmware, nil)
@@ -76,6 +76,8 @@ func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 	var drives []string
 	jsonDrives.ForEach(func(key, drive gjson.Result) bool {
 		drive_id := drive.Get("id").String()
+		enclosure_id := drive.Get("enclosure_id").String()
+		slot_id := drive.Get("slot_id").String()
 		status := drive.Get("status").String() // ["online", "offline", "degraded"]
 		drives = append(drives, drive_id)
 
@@ -88,7 +90,7 @@ func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 		case "degraded":
 			v_status = 2
 		}
-		ch <- prometheus.MustNewConstMetric(drive_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, drive_id)
+		ch <- prometheus.MustNewConstMetric(drive_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, drive_id, enclosure_id, slot_id)
 		return true
 	})
 	v_firmware_consistency := 0
