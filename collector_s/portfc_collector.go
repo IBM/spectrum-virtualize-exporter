@@ -11,13 +11,16 @@ import (
 const prefix_portfc = "spectrum_portfc_"
 
 var (
-	portfc_status *prometheus.Desc
+	portfc_status     *prometheus.Desc
+	portfc_attachment *prometheus.Desc
 )
 
 func init() {
 	registerCollector("lsportfc", defaultEnabled, NewPortfcCollector)
-	labelnames_status := []string{"target", "resource", "node_name", "port_id", "attachment"}
+	labelnames_status := []string{"target", "resource", "node_name", "port_id", "wwpn"}
+	labelnames_attachment := []string{"target", "resource", "node_name", "port_id", "wwpn"}
 	portfc_status = prometheus.NewDesc(prefix_portfc+"status", "Indicates whether the port is configured to a device of Fibre Channel (FC) port. 0-active; 1-inactive_configured; 2-inactive_unconfigured.", labelnames_status, nil)
+	portfc_attachment = prometheus.NewDesc(prefix_portfc+"attachment", "Indicates if the port is attached to a FC switch. 0-yes; 1-no.", labelnames_attachment, nil)
 }
 
 //portfcCollector collects portfc setting metrics
@@ -31,6 +34,7 @@ func NewPortfcCollector() (Collector, error) {
 //Describe describes the metrics
 func (*portfcCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- portfc_status
+	ch <- portfc_attachment
 }
 
 //Collect collects metrics from Spectrum Virtualize Restful API
@@ -86,7 +90,11 @@ func (c *portfcCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	jsonPorts := gjson.Parse(respData)
 	jsonPorts.ForEach(func(key, port gjson.Result) bool {
 		port_id := port.Get("port_id").String()
+		if port_id != "1" && port_id != "2" && port_id != "5" && port_id != "6" {
+			return true
+		}
 		node_name := port.Get("node_name").String()
+		wwpn := port.Get("WWPN").String()
 		status := port.Get("status").String() // ["active", "inactive_configured", "inactive_unconfigured"]
 		attachment := port.Get("attachment").String()
 
@@ -99,7 +107,12 @@ func (c *portfcCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 		case "inactive_unconfigured":
 			v_status = 2
 		}
-		ch <- prometheus.MustNewConstMetric(portfc_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, node_name, port_id, attachment)
+		v_attachment := 0
+		if attachment != "switch" {
+			v_attachment = 1
+		}
+		ch <- prometheus.MustNewConstMetric(portfc_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, node_name, port_id, wwpn)
+		ch <- prometheus.MustNewConstMetric(portfc_attachment, prometheus.GaugeValue, float64(v_attachment), sClient.IpAddress, sClient.Hostname, node_name, port_id, wwpn)
 		return true
 	})
 
