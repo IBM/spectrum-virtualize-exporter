@@ -12,16 +12,19 @@ import (
 const prefix_drive = "spectrum_drive_"
 
 var (
-	drive_status         *prometheus.Desc
-	drive_firmware_level *prometheus.Desc
+	drive_status                     *prometheus.Desc
+	drive_firmware_level             *prometheus.Desc
+	drive_firmware_level_consistency *prometheus.Desc
 )
 
 func init() {
 	registerCollector("lsdrive", defaultEnabled, NewDriveCollector)
 	labelnames_drive := []string{"target", "resource", "drive_id", "enclosure_id", "slot_id"}
 	labelnames_firmware := []string{"target", "resource", "drive_id", "firmware_level"}
+	labelnames_firmware_consistency := []string{"target", "resource"}
 	drive_status = prometheus.NewDesc(prefix_drive+"status", "Indicates the summary status of the drive. 0-online; 1-offline; 2-degraded.", labelnames_drive, nil)
 	drive_firmware_level = prometheus.NewDesc(prefix_drive+"firmware_level", "Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.", labelnames_firmware, nil)
+	drive_firmware_level_consistency = prometheus.NewDesc(prefix_drive+"firmware_level_consistency", "Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.", labelnames_firmware_consistency, nil)
 }
 
 //driveCollector collects drive setting metrics
@@ -36,6 +39,7 @@ func NewDriveCollector() (Collector, error) {
 func (*DriveCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- drive_status
 	ch <- drive_firmware_level
+	ch <- drive_firmware_level_consistency
 }
 
 //Collect collects metrics from Spectrum Virtualize Restful API
@@ -93,6 +97,7 @@ func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 		ch <- prometheus.MustNewConstMetric(drive_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, drive_id, enclosure_id, slot_id)
 		return true
 	})
+	v_firmware_consistency_total := 0
 	v_firmware_consistency := 0
 	base_level := ""
 	for _, drive_id := range drives {
@@ -159,10 +164,13 @@ func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 				v_firmware_consistency = 0
 			} else {
 				v_firmware_consistency = 1
+				v_firmware_consistency_total = 1
 			}
 		}
 		ch <- prometheus.MustNewConstMetric(drive_firmware_level, prometheus.GaugeValue, float64(v_firmware_consistency), sClient.IpAddress, sClient.Hostname, drive_id, firmware_level)
 	}
+
+	ch <- prometheus.MustNewConstMetric(drive_firmware_level_consistency, prometheus.GaugeValue, float64(v_firmware_consistency_total), sClient.IpAddress, sClient.Hostname)
 
 	logger.Debugln("Leaving drive collector.")
 	return nil
