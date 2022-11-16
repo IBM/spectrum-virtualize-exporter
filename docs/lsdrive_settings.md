@@ -8,6 +8,9 @@
 
 # HELP spectrum_drive_firmware_level Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.
 # TYPE spectrum_drive_firmware_level gauge
+
+# HELP spectrum_drive_firmware_level_consistency Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.
+# TYPE spectrum_drive_firmware_level_consistency gauge
 ```
 
 ## Metrics Value
@@ -20,8 +23,13 @@
 
 ### spectrum_drive_firmware_level
 
-- 0: Firmware levels are consistent across all drives
-- 1: Firmware level is not consistent with other drives
+- 0: Firmware level is consistent with disk drive 0.
+- 1: Firmware level is not consistent with disk drive 0.
+
+### spectrum_drive_firmware_level_consistency
+
+- 0: Firmware levels are consistent.
+- 1: Firmware levels are not consistent.
 
 ## Sample Metrics
 
@@ -43,4 +51,6 @@ spectrum_drive_firmware_level{drive_id="4",firmware_level="1_2_11",resource="SAR
 spectrum_drive_firmware_level{drive_id="5",firmware_level="1_2_11",resource="SARA-wdc04-03",target="172.16.64.20"} 0
 spectrum_drive_firmware_level{drive_id="6",firmware_level="1_2_11",resource="SARA-wdc04-03",target="172.16.64.20"} 0
 spectrum_drive_firmware_level{drive_id="7",firmware_level="1_2_11",resource="SARA-wdc04-03",target="172.16.64.20"} 0
+
+spectrum_drive_firmware_level_consistency{resource="SARA-wdc04-03",target="172.16.64.20"} 0
 ```
