@@ -22,7 +22,7 @@ func init() {
 	labelnames_drive := []string{"target", "resource", "drive_id", "enclosure_id", "slot_id"}
 	labelnames_firmware := []string{"target", "resource", "drive_id", "firmware_level"}
 	labelnames_firmware_consistency := []string{"target", "resource"}
-	drive_status = prometheus.NewDesc(prefix_drive+"status", "Indicates the summary status of the drive. 0-online; 1-offline; 2-degraded.", labelnames_drive, nil)
+	drive_status = prometheus.NewDesc(prefix_drive+"status", "Indicates the status of the drive. 0-online; 1-offline; 2-degraded.", labelnames_drive, nil)
 	drive_firmware_level = prometheus.NewDesc(prefix_drive+"firmware_level", "Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.", labelnames_firmware, nil)
 	drive_firmware_level_consistency = prometheus.NewDesc(prefix_drive+"firmware_level_consistency", "Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.", labelnames_firmware_consistency, nil)
 }

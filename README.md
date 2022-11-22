@@ -72,9 +72,10 @@ targets:
 
 ## Exported Metrics
 
-| CLI Command | Description | Default | Metrics | Total number of metrics |
+| RESTful API | Description | Default | Metrics | Total number of metrics |
 | --- | --- | --- | --- | --- |
-| - | Metrics from the exporter itself. | Disabled | [List](docs/exporter_metrics.md) | 35 |
+| - | Metrics from the prometheus exporter itself. | Disabled | [List](docs/exporter_prometheus_metrics.md) | 30 |
+| - | Metrics from the spectrum exporter itself. | Enabled | [List](docs/exporter_spectrum_metrics.md) | 4 |
 | lssystem | Get a detailed view of a clustered system (system). | Enabled | [List](docs/lssystem_metrics.md) | 57 |
 | lssystemstats | Get the most recent values of all node statistics in a system. | Enabled | [List](docs/lssystemstats_metrics.md) | 49 |
 | lsnodestats | Ge the most recent values of statistics for all nodes. | Disabled | [List](docs/lsnodestats_metrics.md)| 46 |
@@ -85,13 +86,16 @@ targets:
 
 ## Exported Settings
 
-| CLI Command | Description | Default | Metrics | Total number of metrics |
+| RESTful API | Description | Default | Metrics | Total number of metrics |
 | --- | --- | --- | --- | --- |
-| - | Metrics from the exporter itself. | Disabled | [List](docs/exporter_metrics.md) | 35 |
+| - | Metrics from the prometheus exporter itself. | Disabled | [List](docs/exporter_prometheus_metrics.md) | 30 |
+| - | Metrics from the spectrum exporter itself. | Enabled | [List](docs/exporter_spectrum_metrics.md) | 4 |
 | lscloudcallhome | The status of the Call Home information. | Enabled | [List](docs/lscloudcallhome_settings.md) | 1 |
-| lsenclosure | The summary of the enclosures including canister and PSU. | Enabled | [List](docs/lsenclosure_settings.md) | 3 |
+| lsenclosure | The summary of the enclosures including canister and PSU. | Enabled | [List](docs/lsenclosure_settings.md) | 1 |
 | lsenclosurebattery | The information about the batteries. | Enabled | [List](docs/lsenclosurebattery_settings.md) | 2 |
-| lsdrive | The configuration information and drive vital product data (VPD). | Enabled | [List](docs/lsdrive_settings.md) | 2 |
+| lsenclosurecanister | The detailed status of each canister in enclosures. | Enabled | [List](docs/lsenclosurecanister_settings.md) | 1 |
+| lsenclosurepsu | The information about each power-supply unit (PSU) in enclosures. | Enabled | [List](docs/lsenclosurepsu_settings.md) | 1 |
+| lsdrive | The configuration information and drive vital product data (VPD). | Enabled | [List](docs/lsdrive_settings.md) | 3 |
 | lshost | The concise information about all the hosts visible to the system. | Enabled | [List](docs/lshost_settings.md) | 1 |
 | lsnodecanister | The node canisters that are part of the system. | Enabled | [List](docs/lsnodecanister_settings.md) | 1 |
 | lsportfc | The status and properties of the Fibre Channel (FC) input/output (I/O) ports for the clustered system. | Enabled | [List](docs/lsportfc_settings.md) | 1 |

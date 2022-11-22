@@ -3,7 +3,7 @@
 ## Metrics Definition
 
 ```txt
-# HELP spectrum_drive_status Indicates the summary status of the drive. 0-online; 1-offline; 2-degraded.
+# HELP spectrum_drive_status Indicates the status of the drive. 0-online; 1-offline; 2-degraded.
 # TYPE spectrum_drive_status gauge
 
 # HELP spectrum_drive_firmware_level Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.
