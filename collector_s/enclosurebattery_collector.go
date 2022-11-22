@@ -19,7 +19,7 @@ func init() {
 	registerCollector("lsenclosurebattery", defaultEnabled, NewEnclosureBatteryCollector)
 	labelnames_status := []string{"target", "resource", "enclosure_id", "battery_id"}
 	labelnames_eolw := []string{"target", "resource", "enclosure_id", "battery_id"}
-	battery_status = prometheus.NewDesc(prefix_enclosurebattery+"status", "Identifies the status of the battery. 0-online; 1-offline; 2-degraded.", labelnames_status, nil)
+	battery_status = prometheus.NewDesc(prefix_enclosurebattery+"status", "Identifies status of each battery in enclosures. 0-online; 1-offline; 2-degraded.", labelnames_status, nil)
 	battery_end_of_life_warning = prometheus.NewDesc(prefix_enclosurebattery+"end_of_life_warning", "Identifies the battery's end of life. Replace the battery if yes. 0-no; 1-yes.", labelnames_eolw, nil)
 }
 

@@ -3,7 +3,7 @@
 ## Metrics Definition
 
 ```txt
-# HELP spectrum_enclosurebattery_status Identifies the status of the battery. 0-online; 1-offline; 2-degraded.
+# HELP spectrum_enclosurebattery_status Identifies status of each battery in enclosures. 0-online; 1-offline; 2-degraded.
 # TYPE spectrum_enclosurebattery_status gauge
 
 # HELP spectrum_enclosurebattery_end_of_life_warning Identifies the battery's end of life. Replace the battery if yes. 0-no; 1-yes.
