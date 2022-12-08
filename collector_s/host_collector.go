@@ -17,7 +17,7 @@ var (
 func init() {
 	registerCollector("lshost", defaultEnabled, NewHostCollector)
 	labelnames_status := []string{"target", "resource", "host_name"}
-	host_status = prometheus.NewDesc(prefix_host+"status", "Host connection status. 0-online/active; 1-inactive; 2-offline; 3-degraded.", labelnames_status, nil)
+	host_status = prometheus.NewDesc(prefix_host+"status", "Host connection status. 0-online; 1-offline; 2-degraded.", labelnames_status, nil)
 }
 
 //hostCollector collects host setting metrics
@@ -71,14 +71,12 @@ func (c *hostCollector) Collect(sClient utils.SpectrumClient, ch chan<- promethe
 
 		v_status := 0
 		switch status {
-		case "online", "active":
+		case "online":
 			v_status = 0
-		case "inactive":
-			v_status = 1
 		case "offline":
-			v_status = 2
+			v_status = 1
 		case "degraded":
-			v_status = 3
+			v_status = 2
 		}
 		ch <- prometheus.MustNewConstMetric(host_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, host_name)
 		return true
