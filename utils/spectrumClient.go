@@ -14,6 +14,7 @@ import (
 )
 
 var logger = log.With("component", "spectrum_exporter")
+var ExtraLabelNames, ExtraLabelValues []string
 
 type SpectrumClient struct {
 	UserName       string

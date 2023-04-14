@@ -39,15 +39,6 @@ type SVCCollector interface {
 // SVCollector implements the prometheus.Collector interface
 type svcCollector struct{}
 
-func init() {
-	labelnames := []string{"target", "resource"}
-	// metric name, help information, Array of defined label names, defined labels
-	scrapeDurationDesc = prometheus.NewDesc(prefix+"scrape_duration_seconds", "Duration of a collector scraping for one host", labelnames, nil)
-	authTokenRenewIntervalDesc = prometheus.NewDesc(prefix+"authtoken_renew_interval_seconds", "Interval of renewing auth token", labelnames, nil)
-	authTokenRenewSuccessDesc = prometheus.NewDesc(prefix+"authtoken_renew_success_total", "Cumulative count of success verification of renewed auth token", labelnames, nil)
-	authTokenRenewFailureDesc = prometheus.NewDesc(prefix+"authtoken_renew_failure_total", "Cumulative count of failed verification of renewed auth token", labelnames, nil)
-}
-
 func registerCollector(collector string, isDefaultEnabled bool, factory func() (Collector, error)) {
 	var helpDefaultState string
 	if isDefaultEnabled {
@@ -73,6 +64,16 @@ func NewSVCCollector(targets []utils.Target, tokenCaches map[string]*utils.AuthT
 		collector Collector
 	)
 	once.Do(func() {
+		labelnames := []string{"resource"}
+		if len(utils.ExtraLabelNames) > 0 {
+			labelnames = append(labelnames, utils.ExtraLabelNames...)
+		}
+		// metric name, help information, Array of defined label names, defined labels
+		scrapeDurationDesc = prometheus.NewDesc(prefix+"scrape_duration_seconds", "Duration of a collector scraping for one host", labelnames, nil)
+		authTokenRenewIntervalDesc = prometheus.NewDesc(prefix+"authtoken_renew_interval_seconds", "Interval of renewing auth token", labelnames, nil)
+		authTokenRenewSuccessDesc = prometheus.NewDesc(prefix+"authtoken_renew_success_total", "Cumulative count of success verification of renewed auth token", labelnames, nil)
+		authTokenRenewFailureDesc = prometheus.NewDesc(prefix+"authtoken_renew_failure_total", "Cumulative count of failed verification of renewed auth token", labelnames, nil)
+
 		hosts = targets
 		collectors = make(map[string]Collector)
 		logger.Infof("Enabled metrics collectors:")
@@ -131,11 +132,15 @@ func (c *svcCollector) collectForHost(host utils.Target, ch chan<- prometheus.Me
 	success := 0
 	var counter utils.Counter
 	spectrumClient := sClients[host.IpAddress]
+	labelvalues := []string{spectrumClient.Hostname}
+	if len(utils.ExtraLabelValues) > 0 {
+		labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+	}
 	defer func() {
-		ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), spectrumClient.IpAddress, spectrumClient.Hostname)
-		ch <- prometheus.MustNewConstMetric(authTokenRenewSuccessDesc, prometheus.CounterValue, float64(counter.AuthTokenRenewSuccessCount), spectrumClient.IpAddress, spectrumClient.Hostname)
-		ch <- prometheus.MustNewConstMetric(authTokenRenewFailureDesc, prometheus.CounterValue, float64(counter.AuthTokenRenewFailureCount), spectrumClient.IpAddress, spectrumClient.Hostname)
-		ch <- prometheus.MustNewConstMetric(authTokenRenewIntervalDesc, prometheus.GaugeValue, float64(counter.AuthTokenRenewIntervalSeconds), spectrumClient.IpAddress, spectrumClient.Hostname)
+		ch <- prometheus.MustNewConstMetric(scrapeDurationDesc, prometheus.GaugeValue, time.Since(start).Seconds(), labelvalues...)
+		ch <- prometheus.MustNewConstMetric(authTokenRenewSuccessDesc, prometheus.CounterValue, float64(counter.AuthTokenRenewSuccessCount), labelvalues...)
+		ch <- prometheus.MustNewConstMetric(authTokenRenewFailureDesc, prometheus.CounterValue, float64(counter.AuthTokenRenewFailureCount), labelvalues...)
+		ch <- prometheus.MustNewConstMetric(authTokenRenewIntervalDesc, prometheus.GaugeValue, float64(counter.AuthTokenRenewIntervalSeconds), labelvalues...)
 	}()
 
 	counter, success = sClients[host.IpAddress].RenewAuthToken(true)

@@ -17,8 +17,6 @@ var (
 
 func init() {
 	registerCollector("lsmdiskgrp_s", defaultEnabled, NewMdiskgrpCollector)
-	labelnames := []string{"target", "resource", "pool_name"}
-	mdiskgrp_status = prometheus.NewDesc(prefix_mdiskgrp+"status", "Status of storage pools that are visible to the system. 0-online; 1-offline; 2-others.", labelnames, nil)
 }
 
 //mdiskgrpCollector collects mdisk metrics
@@ -26,6 +24,11 @@ type mdiskgrpCollector struct {
 }
 
 func NewMdiskgrpCollector() (Collector, error) {
+	labelnames := []string{"resource", "pool_name"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	mdiskgrp_status = prometheus.NewDesc(prefix_mdiskgrp+"status", "Status of storage pools that are visible to the system. 0-online; 1-offline; 2-others.", labelnames, nil)
 	return &mdiskgrpCollector{}, nil
 }
 
@@ -116,7 +119,12 @@ func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prom
 			v_status = 2
 		}
 
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, pool_name)
+		labelvalues := []string{sClient.Hostname, pool_name}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 		return true
 	})
 

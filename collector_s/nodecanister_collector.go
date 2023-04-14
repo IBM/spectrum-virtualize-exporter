@@ -16,8 +16,6 @@ var (
 
 func init() {
 	registerCollector("lsnodecanister", defaultEnabled, NewNodecanisterCollector)
-	labelnames_status := []string{"target", "resource", "node_name"}
-	nodecanister_status = prometheus.NewDesc(prefix_nodecanister+"status", "Status of nodes that are part of the system. 0-online; 1-offline; 2-service; 3-flushing; 4-pending; 5-adding; 6-deleting.", labelnames_status, nil)
 }
 
 //nodecanisterCollector collects nodecanister setting metrics
@@ -25,6 +23,11 @@ type nodecanisterCollector struct {
 }
 
 func NewNodecanisterCollector() (Collector, error) {
+	labelnames := []string{"resource", "node_name"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	nodecanister_status = prometheus.NewDesc(prefix_nodecanister+"status", "Status of nodes that are part of the system. 0-online; 1-offline; 2-service; 3-flushing; 4-pending; 5-adding; 6-deleting.", labelnames, nil)
 	return &nodecanisterCollector{}, nil
 }
 
@@ -93,7 +96,12 @@ func (c *nodecanisterCollector) Collect(sClient utils.SpectrumClient, ch chan<- 
 			v_status = 6
 		}
 
-		ch <- prometheus.MustNewConstMetric(nodecanister_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, node_name)
+		labelvalues := []string{sClient.Hostname, node_name}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+
+		ch <- prometheus.MustNewConstMetric(nodecanister_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 		return true
 	})
 

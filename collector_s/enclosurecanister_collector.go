@@ -16,8 +16,6 @@ var (
 
 func init() {
 	registerCollector("lsenclosurecanister", defaultEnabled, NewEnclosureCanisterCollector)
-	labelnames_status := []string{"target", "resource", "enclosure_id", "canister_id", "node_name"}
-	canister_status = prometheus.NewDesc(prefix_enclosurecanister+"status", "Identifies status of each canister in enclosures.", labelnames_status, nil)
 }
 
 //enclosureCanisterCollector collects enclosurecanister setting metrics
@@ -25,6 +23,11 @@ type enclosureCanisterCollector struct {
 }
 
 func NewEnclosureCanisterCollector() (Collector, error) {
+	labelnames := []string{"resource", "enclosure_id", "canister_id", "node_name"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	canister_status = prometheus.NewDesc(prefix_enclosurecanister+"status", "Identifies status of each canister in enclosures.", labelnames, nil)
 	return &enclosureCanisterCollector{}, nil
 }
 
@@ -81,7 +84,13 @@ func (c *enclosureCanisterCollector) Collect(sClient utils.SpectrumClient, ch ch
 		case "degraded":
 			v_status = 2
 		}
-		ch <- prometheus.MustNewConstMetric(canister_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, enclosure_id, canister_id, node_name)
+
+		labelvalues := []string{sClient.Hostname, enclosure_id, canister_id, node_name}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+
+		ch <- prometheus.MustNewConstMetric(canister_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 		return true
 	})
 

@@ -19,12 +19,6 @@ var (
 
 func init() {
 	registerCollector("lsdrive", defaultEnabled, NewDriveCollector)
-	labelnames_drive := []string{"target", "resource", "drive_id", "enclosure_id", "slot_id"}
-	labelnames_firmware := []string{"target", "resource", "drive_id", "firmware_level"}
-	labelnames_firmware_consistency := []string{"target", "resource"}
-	drive_status = prometheus.NewDesc(prefix_drive+"status", "Indicates the status of the drive. 0-online; 1-offline; 2-degraded.", labelnames_drive, nil)
-	drive_firmware_level = prometheus.NewDesc(prefix_drive+"firmware_level", "Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.", labelnames_firmware, nil)
-	drive_firmware_level_consistency = prometheus.NewDesc(prefix_drive+"firmware_level_consistency", "Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.", labelnames_firmware_consistency, nil)
 }
 
 //driveCollector collects drive setting metrics
@@ -32,6 +26,17 @@ type DriveCollector struct {
 }
 
 func NewDriveCollector() (Collector, error) {
+	labelnames_drive := []string{"resource", "drive_id", "enclosure_id", "slot_id"}
+	labelnames_firmware := []string{"resource", "drive_id", "firmware_level"}
+	labelnames_firmware_consistency := []string{"resource"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames_drive = append(labelnames_drive, utils.ExtraLabelNames...)
+		labelnames_firmware = append(labelnames_firmware, utils.ExtraLabelNames...)
+		labelnames_firmware_consistency = append(labelnames_firmware_consistency, utils.ExtraLabelNames...)
+	}
+	drive_status = prometheus.NewDesc(prefix_drive+"status", "Indicates the status of the drive. 0-online; 1-offline; 2-degraded.", labelnames_drive, nil)
+	drive_firmware_level = prometheus.NewDesc(prefix_drive+"firmware_level", "Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.", labelnames_firmware, nil)
+	drive_firmware_level_consistency = prometheus.NewDesc(prefix_drive+"firmware_level_consistency", "Indicates the firmware level consistency of disks. 0-consistent; 1-inconsistent.", labelnames_firmware_consistency, nil)
 	return &DriveCollector{}, nil
 }
 
@@ -94,7 +99,11 @@ func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 		case "degraded":
 			v_status = 2
 		}
-		ch <- prometheus.MustNewConstMetric(drive_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, drive_id, enclosure_id, slot_id)
+		labelvalues_drive := []string{sClient.Hostname, drive_id, enclosure_id, slot_id}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues_drive = append(labelvalues_drive, utils.ExtraLabelValues...)
+		}
+		ch <- prometheus.MustNewConstMetric(drive_status, prometheus.GaugeValue, float64(v_status), labelvalues_drive...)
 		return true
 	})
 	v_firmware_consistency_total := 0
@@ -167,10 +176,17 @@ func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 				v_firmware_consistency_total = 1
 			}
 		}
-		ch <- prometheus.MustNewConstMetric(drive_firmware_level, prometheus.GaugeValue, float64(v_firmware_consistency), sClient.IpAddress, sClient.Hostname, drive_id, firmware_level)
+		labelvalues_firmware := []string{sClient.Hostname, drive_id, firmware_level}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues_firmware = append(labelvalues_firmware, utils.ExtraLabelValues...)
+		}
+		ch <- prometheus.MustNewConstMetric(drive_firmware_level, prometheus.GaugeValue, float64(v_firmware_consistency), labelvalues_firmware...)
 	}
-
-	ch <- prometheus.MustNewConstMetric(drive_firmware_level_consistency, prometheus.GaugeValue, float64(v_firmware_consistency_total), sClient.IpAddress, sClient.Hostname)
+	labelvalues_firmware_consistency := []string{sClient.Hostname}
+	if len(utils.ExtraLabelValues) > 0 {
+		labelvalues_firmware_consistency = append(labelvalues_firmware_consistency, utils.ExtraLabelValues...)
+	}
+	ch <- prometheus.MustNewConstMetric(drive_firmware_level_consistency, prometheus.GaugeValue, float64(v_firmware_consistency_total), labelvalues_firmware_consistency...)
 
 	logger.Debugln("Leaving drive collector.")
 	return nil

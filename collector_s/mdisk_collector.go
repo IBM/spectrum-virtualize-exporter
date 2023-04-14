@@ -16,8 +16,6 @@ var (
 
 func init() {
 	registerCollector("lsmdisk_s", defaultEnabled, NewMdiskCollector)
-	labelnames := []string{"target", "resource", "pool_name", "mdisk_name"}
-	mdisk_status = prometheus.NewDesc(prefix_mdisk+"status", "Status of managed disks (MDisks) visible to the system. 0-online; 1-offline; 2-excluded; 3-degraded_paths; 4-degraded_ports; 5-degraded.", labelnames, nil)
 }
 
 //mdiskCollector collects mdisk metrics
@@ -25,6 +23,11 @@ type mdiskCollector struct {
 }
 
 func NewMdiskCollector() (Collector, error) {
+	labelnames := []string{"resource", "pool_name", "mdisk_name"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	mdisk_status = prometheus.NewDesc(prefix_mdisk+"status", "Status of managed disks (MDisks) visible to the system. 0-online; 1-offline; 2-excluded; 3-degraded_paths; 4-degraded_ports; 5-degraded.", labelnames, nil)
 	return &mdiskCollector{}, nil
 }
 
@@ -92,7 +95,11 @@ func (c *mdiskCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 				case "degraded":
 					v_status = 5
 				}
-				ch <- prometheus.MustNewConstMetric(mdisk_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, pool_name, mdisk_name)
+				labelvalues := []string{sClient.Hostname, pool_name, mdisk_name}
+				if len(utils.ExtraLabelValues) > 0 {
+					labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+				}
+				ch <- prometheus.MustNewConstMetric(mdisk_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 			}
 		}
 		return true

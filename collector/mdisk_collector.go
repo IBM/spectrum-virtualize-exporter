@@ -12,8 +12,6 @@ var mdiskCapacity *prometheus.Desc
 
 func init() {
 	registerCollector("lsmdisk", defaultDisabled, NewMdiskCollector)
-	labelnames := []string{"target", "resource", "name", "status", "mdisk_grp_name", "tier"}
-	mdiskCapacity = prometheus.NewDesc(prefix_mdisk+"capacity", "The capacity of the MDisk by pool.", labelnames, nil)
 }
 
 //mdiskCollector collects mdisk metrics
@@ -21,6 +19,12 @@ type mdiskCollector struct {
 }
 
 func NewMdiskCollector() (Collector, error) {
+	labelnames := []string{"resource", "name", "status", "mdisk_grp_name", "tier"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	mdiskCapacity = prometheus.NewDesc(prefix_mdisk+"capacity", "The capacity of the MDisk by pool.", labelnames, nil)
+
 	return &mdiskCollector{}, nil
 }
 
@@ -68,9 +72,13 @@ func (c *mdiskCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometh
 		if err != nil {
 			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskCapacity, prometheus.GaugeValue, float64(capacity_bytes), sClient.IpAddress, sClient.Hostname, mdisk.Get("name").String(), mdisk.Get("status").String(), mdisk.Get("mdisk_grp_name").String(), mdisk.Get("tier").String())
+		labelvalues := []string{sClient.Hostname, mdisk.Get("name").String(), mdisk.Get("status").String(), mdisk.Get("mdisk_grp_name").String(), mdisk.Get("tier").String()}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+		ch <- prometheus.MustNewConstMetric(mdiskCapacity, prometheus.GaugeValue, float64(capacity_bytes), labelvalues...)
 
 	}
 	logger.Debugln("Leaving MDisk collector.")
-	return err
+	return nil
 }

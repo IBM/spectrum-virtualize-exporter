@@ -19,7 +19,12 @@ type systemStatsCollector struct {
 
 func init() {
 	registerCollector("lssystemstats", defaultEnabled, NewSystemStatsCollector)
-	labelnames := []string{"target", "resource"}
+}
+func NewSystemStatsCollector() (Collector, error) {
+	labelnames := []string{"resource"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
 	metrics = [49]*prometheus.Desc{
 		prometheus.NewDesc(prefix_stats+"compression_cpu_pc", "The percentage of allocated CPU capacity that is used for compression.", labelnames, nil),
 		prometheus.NewDesc(prefix_stats+"cpu_pc", "The percentage of allocated CPU capacity that is used for the system.", labelnames, nil),
@@ -89,8 +94,6 @@ func init() {
 		prometheus.NewDesc(prefix_stats+"iser_io", "The total I/O operations that are transferred per second for iSER traffic on the system.", labelnames, nil),
 	}
 
-}
-func NewSystemStatsCollector() (Collector, error) {
 	return &systemStatsCollector{}, nil
 }
 
@@ -106,7 +109,6 @@ func (*systemStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	logger.Debugln("Entering SystemStats collector ...")
-	labelvalues := []string{sClient.IpAddress, sClient.Hostname}
 	systemStatsResp, err := sClient.CallSpectrumAPI("lssystemstats", true)
 	if err != nil {
 		logger.Errorf("Executing lssystemstats cmd failed: %s", err.Error())
@@ -140,11 +142,16 @@ func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- p
 	    .........
 	] */
 
+	labelvalues := []string{sClient.Hostname}
+	if len(utils.ExtraLabelValues) > 0 {
+		labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+	}
+
 	systemStats := gjson.Parse(systemStatsResp).Array()
 	for i, systemStat := range systemStats {
 		ch <- prometheus.MustNewConstMetric(metrics[i], prometheus.GaugeValue, systemStat.Get("stat_current").Float(), labelvalues...)
 
 	}
 	logger.Debugln("Leaving SystemStats collector.")
-	return err
+	return nil
 }

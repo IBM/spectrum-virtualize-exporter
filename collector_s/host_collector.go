@@ -16,8 +16,6 @@ var (
 
 func init() {
 	registerCollector("lshost", defaultEnabled, NewHostCollector)
-	labelnames_status := []string{"target", "resource", "host_name"}
-	host_status = prometheus.NewDesc(prefix_host+"status", "Host connection status. 0-online; 1-offline; 2-degraded.", labelnames_status, nil)
 }
 
 //hostCollector collects host setting metrics
@@ -25,6 +23,11 @@ type hostCollector struct {
 }
 
 func NewHostCollector() (Collector, error) {
+	labelnames := []string{"resource", "host_name"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	host_status = prometheus.NewDesc(prefix_host+"status", "Host connection status. 0-online; 1-offline; 2-degraded.", labelnames, nil)
 	return &hostCollector{}, nil
 }
 
@@ -78,7 +81,13 @@ func (c *hostCollector) Collect(sClient utils.SpectrumClient, ch chan<- promethe
 		case "degraded":
 			v_status = 2
 		}
-		ch <- prometheus.MustNewConstMetric(host_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, host_name)
+
+		labelvalues := []string{sClient.Hostname, host_name}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+
+		ch <- prometheus.MustNewConstMetric(host_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 		return true
 	})
 
