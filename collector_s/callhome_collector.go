@@ -14,9 +14,6 @@ var callhomeInfo *prometheus.Desc
 
 func init() {
 	registerCollector("lscloudcallhome", defaultEnabled, NewCallhomeInfoCollector)
-	labelnames := []string{"target", "resource", "status", "connection"}
-	callhomeInfo = prometheus.NewDesc(prefix_callhome+"info", "The status of the Call Home information.", labelnames, nil)
-
 }
 
 //callhomeInfoCollector collects callhome setting metrics
@@ -24,6 +21,12 @@ type callhomeInfoCollector struct {
 }
 
 func NewCallhomeInfoCollector() (Collector, error) {
+	labelnames := []string{"resource", "status", "connection"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	callhomeInfo = prometheus.NewDesc(prefix_callhome+"info", "The status of the Call Home information.", labelnames, nil)
+
 	return &callhomeInfoCollector{}, nil
 }
 
@@ -72,8 +75,11 @@ func (c *callhomeInfoCollector) Collect(sClient utils.SpectrumClient, ch chan<- 
 			value ^= 2
 		}
 	}
-
-	ch <- prometheus.MustNewConstMetric(callhomeInfo, prometheus.GaugeValue, float64(value), sClient.IpAddress, sClient.Hostname, status, connection)
+	labelvalues := []string{sClient.Hostname, status, connection}
+	if len(utils.ExtraLabelValues) > 0 {
+		labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+	}
+	ch <- prometheus.MustNewConstMetric(callhomeInfo, prometheus.GaugeValue, float64(value), labelvalues...)
 
 	logger.Debugln("Leaving Callhome collector.")
 	return err

@@ -62,8 +62,20 @@ func main() {
 		authTokenMutexes[t.IpAddress] = &sync.Mutex{}
 		colCounters[t.IpAddress] = &utils.Counter{}
 	}
+	for _, l := range cfg.ExtraLabels {
+		utils.ExtraLabelNames = append(utils.ExtraLabelNames, l.Name)
+		utils.ExtraLabelValues = append(utils.ExtraLabelValues, l.Value)
+	}
 	logger.Infoln("Starting Spectrum_Virtualize_exporter", version.Info())
 	logger.Infoln("Build context", version.BuildContext())
+
+	if len(utils.ExtraLabelNames) > 0 {
+		msg := "Extra labels: ["
+		for idx, item := range utils.ExtraLabelNames {
+			msg += "    " + item + " => " + utils.ExtraLabelValues[idx] + ";"
+		}
+		logger.Infoln(msg, "]")
+	}
 	//Launch http services
 	// http.HandleFunc(*metricsContext, handlerMetricRequest)
 	r.Handle(*metricsContext, newHandler(!*disableExporterMetrics))

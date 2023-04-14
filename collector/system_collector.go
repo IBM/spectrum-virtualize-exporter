@@ -47,7 +47,19 @@ var (
 
 func init() {
 	registerCollector("lssystem", defaultEnabled, NewSystemCollector)
-	labelnames := []string{"target", "resource"}
+}
+
+// systemCollector collects system metrics
+type systemCollector struct {
+}
+
+func NewSystemCollector() (Collector, error) {
+	labelnames := []string{"resource"}
+	labelnames_tier := []string{"resource", "tier"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+		labelnames_tier = append(labelnames_tier, utils.ExtraLabelNames...)
+	}
 	total_mdisk_capacity = prometheus.NewDesc(prefix_sys+"total_mdisk_capacity", "The sum of mdiskgrp capacity plus the capacity of all unmanaged MDisks", labelnames, nil)
 	space_in_mdisk_grps = prometheus.NewDesc(prefix_sys+"space_in_mdisk_grps", "The sum of mdiskgrp capacity", labelnames, nil)
 	space_allocated_to_vdisks = prometheus.NewDesc(prefix_sys+"space_allocated_to_vdisks", "The sum of mdiskgrp real_capacity", labelnames, nil)
@@ -72,21 +84,12 @@ func init() {
 	used_capacity_after_reduction = prometheus.NewDesc(prefix_sys+"used_capacity_after_reduction", "The total amount of capacity that is used for thin-provisioned and compressed volume copies in the storage pool after data reduction occurs.", labelnames, nil)
 	overhead_capacity = prometheus.NewDesc(prefix_sys+"overhead_capacity", "The overhead capacity consumption in all storage pools that is not attributed to data.", labelnames, nil)
 	deduplication_capacity_saving = prometheus.NewDesc(prefix_sys+"deduplication_capacity_saving", "The total amount of used capacity that is saved by data deduplication. This saving is before any compression.", labelnames, nil)
-
-	tier_capacity = prometheus.NewDesc(prefix_sys+"tier_capacity", "The total MDisk storage in the tier.", []string{"target", "resource", "tier"}, nil)
-	tier_free_capacity = prometheus.NewDesc(prefix_sys+"tier_free_capacity", "The amount of MDisk storage in the tier that is unused.", []string{"target", "resource", "tier"}, nil)
-
+	tier_capacity = prometheus.NewDesc(prefix_sys+"tier_capacity", "The total MDisk storage in the tier.", labelnames_tier, nil)
+	tier_free_capacity = prometheus.NewDesc(prefix_sys+"tier_free_capacity", "The amount of MDisk storage in the tier that is unused.", labelnames_tier, nil)
 	physical_capacity_usage = prometheus.NewDesc(prefix_sys+"physical_capacity_used_percent", "The physical capacity utilization", labelnames, nil)
 	volume_capacity_usage = prometheus.NewDesc(prefix_sys+"volume_capacity_used_percent", "The volume capacity utilization", labelnames, nil)
 	mdiskgrp_capacity_usage = prometheus.NewDesc(prefix_sys+"mdiskgrp_capacity_used_percent", "The mdiskgrp capacity utilization", labelnames, nil)
 
-}
-
-// systemCollector collects system metrics
-type systemCollector struct {
-}
-
-func NewSystemCollector() (Collector, error) {
 	return &systemCollector{}, nil
 }
 
@@ -128,8 +131,6 @@ func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	logger.Debugln("Entering System collector ...")
-	// labelvalues := []string{sClient.IpAddress}
-	labelvalues := []string{sClient.IpAddress, sClient.Hostname}
 	systemMetrics, err := sClient.CallSpectrumAPI("lssystem", true)
 	// This is a sample output of lssystem
 	// {
@@ -222,8 +223,15 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 
 	if err != nil {
 		logger.Errorf("Executing lssystem cmd failed: %s", err.Error())
+		return err
 	}
 	logger.Debugln("Response of lssystem: ", systemMetrics)
+
+	labelvalues := []string{sClient.Hostname}
+	if len(utils.ExtraLabelValues) > 0 {
+		labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+	}
+
 	total_mdisk_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_mdisk_capacity").String())
 	if err != nil {
 		logger.Errorf("Converting capacity unit failed: %s", err.Error())
@@ -370,17 +378,21 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 
 	tierArray := gjson.Get(systemMetrics, "tiers").Array()
 	for _, tier := range tierArray {
+		labelvalues_tier := []string{sClient.Hostname, tier.Get("tier").String()}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues_tier = append(labelvalues_tier, utils.ExtraLabelValues...)
+		}
 		tier_capacity_bytes, err := utils.ToBytes(tier.Get("tier_capacity").String())
 		if err != nil {
 			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), sClient.IpAddress, sClient.Hostname, tier.Get("tier").String())
+		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), labelvalues_tier...)
 
 		tier_free_capacity_bytes, err := utils.ToBytes(tier.Get("tier_free_capacity").String())
 		if err != nil {
 			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.IpAddress, sClient.Hostname, tier.Get("tier").String())
+		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), labelvalues_tier...)
 	}
 
 	physical_capacity_usage_value := float64(physical_capacity_bytes-physical_free_capacity_bytes-total_reclaimable_capacity_bytes) / float64(physical_capacity_bytes) * 100
@@ -473,5 +485,5 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity_usage, prometheus.GaugeValue, mdiskgrp_capacity_usage_value, labelvalues...)
 
 	logger.Debugln("Leaving System collector.")
-	return err
+	return nil
 }

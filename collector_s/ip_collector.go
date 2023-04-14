@@ -17,8 +17,6 @@ var (
 
 func init() {
 	registerCollector("ip", defaultEnabled, NewIPCollector)
-	labelnames_status := []string{"target", "resource", "ip_name", "ip_address"}
-	ip_status = prometheus.NewDesc(prefix_ip+"status", "IP connection status. 0-connectable; 1-unreachable.", labelnames_status, nil)
 }
 
 //ipCollector collects ip setting metrics
@@ -26,6 +24,11 @@ type ipCollector struct {
 }
 
 func NewIPCollector() (Collector, error) {
+	labelnames := []string{"resource", "ip_name", "ip_address"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	ip_status = prometheus.NewDesc(prefix_ip+"status", "IP connection status. 0-connectable; 1-unreachable.", labelnames, nil)
 	return &ipCollector{}, nil
 }
 
@@ -62,7 +65,13 @@ func (c *ipCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus
 		default:
 			v_status = 1
 		}
-		ch <- prometheus.MustNewConstMetric(ip_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, ip_name, ip_address)
+
+		labelvalues := []string{sClient.Hostname, ip_name, ip_address}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+
+		ch <- prometheus.MustNewConstMetric(ip_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 	}
 
 	logger.Debugln("Leaving IP collector.")

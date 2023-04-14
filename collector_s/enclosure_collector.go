@@ -16,8 +16,6 @@ var (
 
 func init() {
 	registerCollector("lsenclosure", defaultEnabled, NewEnclosureCollector)
-	labelnames_status := []string{"target", "resource", "enclosure_id"}
-	enclosure_status = prometheus.NewDesc(prefix_enclosure+"status", "Indicates whether an enclosure is visible to the SAS network. 0-online; 1-offline; 2-degraded.", labelnames_status, nil)
 }
 
 //enclosureCollector collects enclosure setting metrics
@@ -25,6 +23,11 @@ type enclosureCollector struct {
 }
 
 func NewEnclosureCollector() (Collector, error) {
+	labelnames := []string{"resource", "enclosure_id"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	enclosure_status = prometheus.NewDesc(prefix_enclosure+"status", "Indicates whether an enclosure is visible to the SAS network. 0-online; 1-offline; 2-degraded.", labelnames, nil)
 	return &enclosureCollector{}, nil
 }
 
@@ -82,7 +85,11 @@ func (c *enclosureCollector) Collect(sClient utils.SpectrumClient, ch chan<- pro
 		case "degraded":
 			v_status = 2
 		}
-		ch <- prometheus.MustNewConstMetric(enclosure_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, enclosure_id)
+		labelvalues := []string{sClient.Hostname, enclosure_id}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+		ch <- prometheus.MustNewConstMetric(enclosure_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 		return true
 	})
 

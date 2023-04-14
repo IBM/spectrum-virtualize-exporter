@@ -17,10 +17,6 @@ var (
 
 func init() {
 	registerCollector("lsenclosurebattery", defaultEnabled, NewEnclosureBatteryCollector)
-	labelnames_status := []string{"target", "resource", "enclosure_id", "battery_id"}
-	labelnames_eolw := []string{"target", "resource", "enclosure_id", "battery_id"}
-	battery_status = prometheus.NewDesc(prefix_enclosurebattery+"status", "Identifies status of each battery in enclosures. 0-online; 1-offline; 2-degraded.", labelnames_status, nil)
-	battery_end_of_life_warning = prometheus.NewDesc(prefix_enclosurebattery+"end_of_life_warning", "Identifies the battery's end of life. Replace the battery if yes. 0-no; 1-yes.", labelnames_eolw, nil)
 }
 
 //enclosureBatteryCollector collects enclosurebattery setting metrics
@@ -28,6 +24,14 @@ type enclosureBatteryCollector struct {
 }
 
 func NewEnclosureBatteryCollector() (Collector, error) {
+	labelnames_status := []string{"resource", "enclosure_id", "battery_id"}
+	labelnames_eolw := []string{"resource", "enclosure_id", "battery_id"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames_status = append(labelnames_status, utils.ExtraLabelNames...)
+		labelnames_eolw = append(labelnames_eolw, utils.ExtraLabelNames...)
+	}
+	battery_status = prometheus.NewDesc(prefix_enclosurebattery+"status", "Identifies status of each battery in enclosures. 0-online; 1-offline; 2-degraded.", labelnames_status, nil)
+	battery_end_of_life_warning = prometheus.NewDesc(prefix_enclosurebattery+"end_of_life_warning", "Identifies the battery's end of life. Replace the battery if yes. 0-no; 1-yes.", labelnames_eolw, nil)
 	return &enclosureBatteryCollector{}, nil
 }
 
@@ -78,6 +82,11 @@ func (c *enclosureBatteryCollector) Collect(sClient utils.SpectrumClient, ch cha
 		status := battery.Get("status").String()                           // ["online", "offline", "degraded"]
 		end_of_life_warning := battery.Get("end_of_life_warning").String() // ["yes", "no"]
 
+		labelvalues := []string{sClient.Hostname, enclosure_id, battery_id}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+
 		v_status := 0
 		switch status {
 		case "online":
@@ -87,7 +96,7 @@ func (c *enclosureBatteryCollector) Collect(sClient utils.SpectrumClient, ch cha
 		case "degraded":
 			v_status = 2
 		}
-		ch <- prometheus.MustNewConstMetric(battery_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, enclosure_id, battery_id)
+		ch <- prometheus.MustNewConstMetric(battery_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 
 		v_eolw := 0
 		switch end_of_life_warning {
@@ -96,7 +105,7 @@ func (c *enclosureBatteryCollector) Collect(sClient utils.SpectrumClient, ch cha
 		case "yes":
 			v_eolw = 1
 		}
-		ch <- prometheus.MustNewConstMetric(battery_end_of_life_warning, prometheus.GaugeValue, float64(v_eolw), sClient.IpAddress, sClient.Hostname, enclosure_id, battery_id)
+		ch <- prometheus.MustNewConstMetric(battery_end_of_life_warning, prometheus.GaugeValue, float64(v_eolw), labelvalues...)
 		return true
 	})
 

@@ -14,7 +14,17 @@ var (
 
 func init() {
 	registerCollector("lsnodestats", defaultDisabled, NewNodeStatsCollector)
-	labelnames := []string{"target", "resource", "node"}
+}
+
+//nodeStatsCollector collects nodeStats metrics
+type nodeStatsCollector struct {
+}
+
+func NewNodeStatsCollector() (Collector, error) {
+	labelnames := []string{"resource", "node"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
 	nodeStats_metrics = [46]*prometheus.Desc{
 		prometheus.NewDesc(prefix_nodeStats+"compression_cpu_pc", "The percentage of allocated CPU capacity that is used for compression.", labelnames, nil),
 		prometheus.NewDesc(prefix_nodeStats+"cpu_pc", "The percentage of allocated CPU capacity that is used for the system.", labelnames, nil),
@@ -80,13 +90,6 @@ func init() {
 		prometheus.NewDesc(prefix_nodeStats+"iser_io", "The total I/O operations that are transferred per second for iSER traffic on the system.", labelnames, nil),
 	}
 
-}
-
-//nodeStatsCollector collects nodeStats metrics
-type nodeStatsCollector struct {
-}
-
-func NewNodeStatsCollector() (Collector, error) {
 	return &nodeStatsCollector{}, nil
 }
 
@@ -167,9 +170,15 @@ func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- pro
 
 	nodeStatsArray := gjson.Parse(nodeStatsResp).Array()
 	for i, nodeStats_metric := range nodeStats_metrics {
-		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[i].Get("stat_current").Float(), sClient.IpAddress, sClient.Hostname, nodeStatsArray[i].Get("node_name").String())
-		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("stat_current").Float(), sClient.IpAddress, sClient.Hostname, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("node_name").String())
+		labelvalues := []string{sClient.Hostname, nodeStatsArray[i].Get("node_name").String()}
+		labelvalues_a := []string{sClient.Hostname, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("node_name").String()}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+			labelvalues_a = append(labelvalues_a, utils.ExtraLabelValues...)
+		}
+		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[i].Get("stat_current").Float(), labelvalues...)
+		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("stat_current").Float(), labelvalues_a...)
 	}
 	logger.Debugln("Leaving NodeStats collector.")
-	return err
+	return nil
 }

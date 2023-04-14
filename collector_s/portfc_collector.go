@@ -17,10 +17,6 @@ var (
 
 func init() {
 	registerCollector("lsportfc", defaultEnabled, NewPortfcCollector)
-	labelnames_status := []string{"target", "resource", "node_name", "port_id", "wwpn"}
-	labelnames_attachment := []string{"target", "resource", "node_name", "port_id", "wwpn"}
-	portfc_status = prometheus.NewDesc(prefix_portfc+"status", "Indicates whether the port is configured to a device of Fibre Channel (FC) port. 0-active; 1-inactive_configured; 2-inactive_unconfigured.", labelnames_status, nil)
-	portfc_attachment = prometheus.NewDesc(prefix_portfc+"attachment", "Indicates if the port is attached to a FC switch. 0-yes; 1-no.", labelnames_attachment, nil)
 }
 
 //portfcCollector collects portfc setting metrics
@@ -28,6 +24,14 @@ type portfcCollector struct {
 }
 
 func NewPortfcCollector() (Collector, error) {
+	labelnames_status := []string{"resource", "node_name", "port_id", "wwpn"}
+	labelnames_attachment := []string{"resource", "node_name", "port_id", "wwpn"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames_status = append(labelnames_status, utils.ExtraLabelNames...)
+		labelnames_attachment = append(labelnames_attachment, utils.ExtraLabelNames...)
+	}
+	portfc_status = prometheus.NewDesc(prefix_portfc+"status", "Indicates whether the port is configured to a device of Fibre Channel (FC) port. 0-active; 1-inactive_configured; 2-inactive_unconfigured.", labelnames_status, nil)
+	portfc_attachment = prometheus.NewDesc(prefix_portfc+"attachment", "Indicates if the port is attached to a FC switch. 0-yes; 1-no.", labelnames_attachment, nil)
 	return &portfcCollector{}, nil
 }
 
@@ -111,8 +115,14 @@ func (c *portfcCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 		if attachment != "switch" {
 			v_attachment = 1
 		}
-		ch <- prometheus.MustNewConstMetric(portfc_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, node_name, port_id, wwpn)
-		ch <- prometheus.MustNewConstMetric(portfc_attachment, prometheus.GaugeValue, float64(v_attachment), sClient.IpAddress, sClient.Hostname, node_name, port_id, wwpn)
+
+		labelvalues := []string{sClient.Hostname, node_name, port_id, wwpn}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+
+		ch <- prometheus.MustNewConstMetric(portfc_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
+		ch <- prometheus.MustNewConstMetric(portfc_attachment, prometheus.GaugeValue, float64(v_attachment), labelvalues...)
 		return true
 	})
 

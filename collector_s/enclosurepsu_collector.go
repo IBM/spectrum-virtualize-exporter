@@ -16,8 +16,6 @@ var (
 
 func init() {
 	registerCollector("lsenclosurepsu", defaultEnabled, NewEnclosurePsuCollector)
-	labelnames_status := []string{"target", "resource", "enclosure_id", "psu_id"}
-	psu_status = prometheus.NewDesc(prefix_enclosurepsu+"status", "Indicates status of each power-supply unit (PSU) in enclosures.", labelnames_status, nil)
 }
 
 //enclosurePsuCollector collects enclosurepsu setting metrics
@@ -25,6 +23,11 @@ type enclosurePsuCollector struct {
 }
 
 func NewEnclosurePsuCollector() (Collector, error) {
+	labelnames := []string{"resource", "enclosure_id", "psu_id"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	psu_status = prometheus.NewDesc(prefix_enclosurepsu+"status", "Indicates status of each power-supply unit (PSU) in enclosures.", labelnames, nil)
 	return &enclosurePsuCollector{}, nil
 }
 
@@ -76,7 +79,13 @@ func (c *enclosurePsuCollector) Collect(sClient utils.SpectrumClient, ch chan<- 
 		case "degraded":
 			v_status = 2
 		}
-		ch <- prometheus.MustNewConstMetric(psu_status, prometheus.GaugeValue, float64(v_status), sClient.IpAddress, sClient.Hostname, enclosure_id, psu_id)
+
+		labelvalues := []string{sClient.Hostname, enclosure_id, psu_id}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+
+		ch <- prometheus.MustNewConstMetric(psu_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 		return true
 	})
 

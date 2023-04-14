@@ -14,8 +14,6 @@ var (
 
 func init() {
 	registerCollector("lsvdisk", defaultDisabled, NewVolumeCollector)
-	labelnames := []string{"target", "resource", "volume_id", "volume_name", "mdisk_grp_name"}
-	volumeCapacity = prometheus.NewDesc(prefix_volume+"capacity", "The virtual capacity of the volume that is the size of the volume as seen by the host.", labelnames, nil)
 }
 
 //volumeCollector collects vdisk metrics
@@ -23,6 +21,12 @@ type volumeCollector struct {
 }
 
 func NewVolumeCollector() (Collector, error) {
+	labelnames := []string{"resource", "volume_id", "volume_name", "mdisk_grp_name"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	volumeCapacity = prometheus.NewDesc(prefix_volume+"capacity", "The virtual capacity of the volume that is the size of the volume as seen by the host.", labelnames, nil)
+
 	return &volumeCollector{}, nil
 }
 
@@ -81,8 +85,12 @@ func (c *volumeCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 		if err != nil {
 			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(volumeCapacity, prometheus.GaugeValue, float64(capacity_bytes), sClient.IpAddress, sClient.Hostname, volume.Get("volume_id").String(), volume.Get("volume_name").String(), volume.Get("mdisk_grp_name").String())
+		labelvalues := []string{sClient.Hostname, volume.Get("volume_id").String(), volume.Get("volume_name").String(), volume.Get("mdisk_grp_name").String()}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+		ch <- prometheus.MustNewConstMetric(volumeCapacity, prometheus.GaugeValue, float64(capacity_bytes), labelvalues...)
 	}
 	logger.Debugln("Leaving volume collector.")
-	return err
+	return nil
 }

@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	Targets []Target `yaml:"targets"`
+	Targets     []Target `yaml:"targets"`
+	ExtraLabels []Label  `yaml:"extra_labels"`
 }
 
 type Target struct {
@@ -15,6 +16,11 @@ type Target struct {
 	Userid     string `yaml:"userid"`
 	Password   string `yaml:"password"`
 	VerifyCert bool   `yaml:"verifyCert"`
+}
+
+type Label struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
 }
 
 //Load loads a config from filename
