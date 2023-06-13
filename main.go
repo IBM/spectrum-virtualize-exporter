@@ -1,7 +1,10 @@
 package main
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sync"
 
@@ -55,6 +58,7 @@ func main() {
 	c, err := utils.GetConfig(*configFile)
 	if err != nil {
 		logger.Fatalf("Error parsing config file: %s", err.Error())
+		return
 	}
 	cfg = c
 	for _, t := range cfg.Targets {
@@ -77,17 +81,58 @@ func main() {
 		logger.Infoln(msg, "]")
 	}
 	//Launch http services
-	// http.HandleFunc(*metricsContext, handlerMetricRequest)
 	r.Handle(*metricsContext, newHandler(!*disableExporterMetrics))
 	r.Handle(*settingsContext, newHandler(!*disableExporterMetrics))
-	//	r.HandleFunc(*settingsContext, testFunc)
 	r.HandleFunc("/", rootFunc)
-	// http.Handle(*metricsContext, prometheus.Handler()) // Normal metrics endpoint for Spectrum Virtualize exporter itself.
 
-	logger.Infof("Listening for %s on %s\n", *metricsContext, *listenAddress)
-	logger.Infof("Listening for %s on %s\n", *settingsContext, *listenAddress)
-	logger.Fatal(http.ListenAndServe(*listenAddress, CSRF(r)))
+	if cfg.TlsServerConfig.CaCert != "" && cfg.TlsServerConfig.ServerCert != "" && cfg.TlsServerConfig.ServerKey != "" {
+		startHTTPS(CSRF(r), cfg.TlsServerConfig.CaCert, cfg.TlsServerConfig.ServerCert, cfg.TlsServerConfig.ServerKey)
+	} else {
+		startHTTP(CSRF(r))
+	}
+}
 
+func startHTTP(handler http.Handler) {
+	logger.Infof("Listening(HTTP) for %s on %s\n", *metricsContext, *listenAddress)
+	logger.Infof("Listening(HTTP) for %s on %s\n", *settingsContext, *listenAddress)
+	logger.Fatal(http.ListenAndServe(*listenAddress, handler))
+}
+
+func startHTTPS(handler http.Handler, ca_cert string, server_cert string, server_key string) {
+	// load CA certificate file and add it to list of client CAs
+	caCertFile, err := ioutil.ReadFile(ca_cert)
+	if err != nil {
+		logger.Fatalf("error reading CA certificate: %s", err.Error())
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCertFile)
+
+	// Create the TLS Config with the CA pool and enable Client certificate validation
+	tlsConfig := &tls.Config{
+		ClientCAs:                caCertPool,
+		ClientAuth:               tls.RequireAndVerifyClientCert,
+		MinVersion:               tls.VersionTLS12,
+		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+		PreferServerCipherSuites: true,
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+		},
+	}
+
+	server := http.Server{
+		Addr:      *listenAddress,
+		Handler:   handler,
+		TLSConfig: tlsConfig,
+	}
+
+	logger.Infof("Listening(HTTPS) for %s on %s\n", *metricsContext, *listenAddress)
+	logger.Infof("Listening(HTTPS) for %s on %s\n", *settingsContext, *listenAddress)
+	logger.Fatal(server.ListenAndServeTLS(server_cert, server_key))
 }
 
 func rootFunc(w http.ResponseWriter, r *http.Request) {

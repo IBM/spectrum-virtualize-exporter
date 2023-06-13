@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	Targets     []Target `yaml:"targets"`
-	ExtraLabels []Label  `yaml:"extra_labels"`
+	Targets         []Target        `yaml:"targets"`
+	ExtraLabels     []Label         `yaml:"extra_labels"`
+	TlsServerConfig TlsServerConfig `yaml:"tls_server_config"`
 }
 
 type Target struct {
@@ -21,6 +22,12 @@ type Target struct {
 type Label struct {
 	Name  string `yaml:"name"`
 	Value string `yaml:"value"`
+}
+
+type TlsServerConfig struct {
+	CaCert     string `yaml:"ca_cert"`
+	ServerCert string `yaml:"server_cert"`
+	ServerKey  string `yaml:"server_key"`
 }
 
 //Load loads a config from filename

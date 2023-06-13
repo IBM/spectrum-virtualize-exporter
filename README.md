@@ -61,6 +61,8 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 ## Configuration
 
 The spectrum-virtualize-exporter reads from [spectrumVirtualize.yml](spectrumVirtualize.yml) config file by default. Edit your config YAML file, Enter the IP address of the storage device, your username, and your password there.
+Optionally, the "extra_labels" can be used to add customized labels for metrics.
+Optionally, the "tls_server_config" can be used to expose metrics on https server with mTLS enabled. (Any of the "ca_cert", "server_cert" and "server_key" is not provided will start http srever without mTLS)
 
 ```bash
 targets:
@@ -68,6 +70,13 @@ targets:
     userid: user
     password: password
     verifyCert: true
+extra_labels:
+  - name: pod_name
+    value: pod_value
+tls_server_config:
+  ca_cert: ./certs/ca-root.crt
+  server_cert: ./certs/server.crt
+  server_key: ./certs/server.key
 ```
 
 ## Exported Metrics
