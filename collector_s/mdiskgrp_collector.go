@@ -40,13 +40,13 @@ func (*mdiskgrpCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect() collects metrics from Spectrum Virtualize Restful API
 func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	logger.Debugln("Entering MDiskgrp collector ...")
+	logger.Debugln("entering MDiskgrp collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsmdiskgrp", true)
 	if err != nil {
-		logger.Errorf("Executing lsmdiskgrp cmd failed: %s", err.Error())
+		logger.Errorf("executing lsmdiskgrp cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lsmdiskgrp: ", respData)
+	logger.Debugln("response of lsmdiskgrp: ", respData)
 	/* This is a sample output of lsmdiskgrp
 	[
 		{
@@ -128,6 +128,6 @@ func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prom
 		return true
 	})
 
-	logger.Debugln("Leaving MDiskgrp collector.")
+	logger.Debugln("exit MDiskgrp exit")
 	return nil
 }

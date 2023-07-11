@@ -108,15 +108,15 @@ func (*systemStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	logger.Debugln("Entering SystemStats collector ...")
+	logger.Debugln("entering SystemStats collector ...")
 	systemStatsResp, err := sClient.CallSpectrumAPI("lssystemstats", true)
 	if err != nil {
 		logger.Errorf("Executing lssystemstats cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lssystemstats: ", systemStatsResp)
+	logger.Debugln("response of lssystemstats: ", systemStatsResp)
 	if !gjson.Valid(systemStatsResp) {
-		return fmt.Errorf("invalid json for lscloudcallhome:\n%v", systemStatsResp)
+		return fmt.Errorf("invalid json for lscloudcallhome: %v", systemStatsResp)
 	}
 	/* This is a sample output of lssystemstats
 		[
@@ -152,6 +152,6 @@ func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- p
 		ch <- prometheus.MustNewConstMetric(metrics[i], prometheus.GaugeValue, systemStat.Get("stat_current").Float(), labelvalues...)
 
 	}
-	logger.Debugln("Leaving SystemStats collector.")
+	logger.Debugln("exit SystemStats collector")
 	return nil
 }
