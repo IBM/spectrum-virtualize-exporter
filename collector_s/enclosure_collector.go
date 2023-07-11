@@ -39,13 +39,13 @@ func (*enclosureCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *enclosureCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	logger.Debugln("Entering enclosure collector ...")
+	logger.Debugln("entering enclosure collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsenclosure", true)
 	if err != nil {
-		logger.Errorf("Executing lsenclosure cmd failed: %s", err.Error())
+		logger.Errorf("executing lsenclosure cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lsenclosure: ", respData)
+	logger.Debugln("response of lsenclosure: ", respData)
 	/* This is a sample output of lsenclosure
 	[
 	    {
@@ -93,6 +93,6 @@ func (c *enclosureCollector) Collect(sClient utils.SpectrumClient, ch chan<- pro
 		return true
 	})
 
-	logger.Debugln("Leaving enclosure collector.")
+	logger.Debugln("exit enclosure exit")
 	return nil
 }

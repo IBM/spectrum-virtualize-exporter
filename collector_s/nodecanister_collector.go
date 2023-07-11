@@ -39,13 +39,13 @@ func (*nodecanisterCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *nodecanisterCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	logger.Debugln("Entering nodecanister collector ...")
+	logger.Debugln("entering nodecanister collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsnodecanister", true)
 	if err != nil {
-		logger.Errorf("Executing lsnodecanister cmd failed: %s", err.Error())
+		logger.Errorf("executing lsnodecanister cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lsnodecanister: ", respData)
+	logger.Debugln("response of lsnodecanister: ", respData)
 	/* This is a sample output of lsnodecanister
 	[
 		{
@@ -105,6 +105,6 @@ func (c *nodecanisterCollector) Collect(sClient utils.SpectrumClient, ch chan<- 
 		return true
 	})
 
-	logger.Debugln("Leaving nodecanister collector.")
+	logger.Debugln("exit nodecanister exit")
 	return nil
 }

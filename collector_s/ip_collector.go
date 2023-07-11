@@ -40,7 +40,7 @@ func (*ipCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect() collects metrics from Spectrum Virtualize Restful API
 func (c *ipCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	logger.Debugln("Entering IP collector ...")
+	logger.Debugln("entering IP collector ...")
 	hosts := make(map[string]string)
 	str := sClient.IpAddress[:len(sClient.IpAddress)-1]
 	hosts["PSYS"] = sClient.IpAddress
@@ -74,6 +74,6 @@ func (c *ipCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus
 		ch <- prometheus.MustNewConstMetric(ip_status, prometheus.GaugeValue, float64(v_status), labelvalues...)
 	}
 
-	logger.Debugln("Leaving IP collector.")
+	logger.Debugln("exit IP exit")
 	return nil
 }
