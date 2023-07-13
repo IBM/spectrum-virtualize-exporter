@@ -209,7 +209,7 @@ func (s *SpectrumClient) CallSpectrumAPI(restCmd string, autoRenewToken bool) (b
 		logger.Debugf("error connecting to Spectrum: %s", err.Error())
 		return "", fmt.Errorf("error connecting to : %s. the error is: %s", requestURL, err.Error())
 	}
-	if autoRenewToken && resp.StatusCode == 403 {
+	if autoRenewToken && (resp.StatusCode == 401 || resp.StatusCode == 403) {
 		logger.Infoln("token is invalid, start to auto renew auth token")
 		_, success := s.RenewAuthToken(false)
 		if success == 0 {
