@@ -39,13 +39,13 @@ func (*volumeCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *volumeCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	logger.Debugln("Entering volume collector ...")
+	logger.Debugln("entering volume collector ...")
 	volumeResp, err := sClient.CallSpectrumAPI("lsvdisk", true)
 	if err != nil {
 		logger.Errorf("Executing lsvdisk cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lsvdisk: ", volumeResp)
+	logger.Debugln("response of lsvdisk: ", volumeResp)
 	// This is a sample output of lsvdisk
 	// 	[
 	//     {
@@ -91,6 +91,6 @@ func (c *volumeCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 		}
 		ch <- prometheus.MustNewConstMetric(volumeCapacity, prometheus.GaugeValue, float64(capacity_bytes), labelvalues...)
 	}
-	logger.Debugln("Leaving volume collector.")
+	logger.Debugln("exit volume collector")
 	return nil
 }

@@ -39,13 +39,13 @@ func (*enclosureCanisterCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *enclosureCanisterCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	logger.Debugln("Entering enclosurecanister collector ...")
+	logger.Debugln("entering enclosurecanister collector ...")
 	respData, err := sClient.CallSpectrumAPI("lsenclosurecanister", true)
 	if err != nil {
-		logger.Errorf("Executing lsenclosurecanister cmd failed: %s", err.Error())
+		logger.Errorf("executing lsenclosurecanister cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lsenclosurecanister: ", respData)
+	logger.Debugln("response of lsenclosurecanister: ", respData)
 	/* This is a sample output of lsenclosurecanister
 	[
 		{
@@ -94,6 +94,6 @@ func (c *enclosureCanisterCollector) Collect(sClient utils.SpectrumClient, ch ch
 		return true
 	})
 
-	logger.Debugln("Leaving enclosurecanister collector.")
+	logger.Debugln("exit enclosurecanister exit")
 	return nil
 }

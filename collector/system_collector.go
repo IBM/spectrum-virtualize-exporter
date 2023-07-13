@@ -130,7 +130,7 @@ func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	logger.Debugln("Entering System collector ...")
+	logger.Debugln("entering System collector ...")
 	systemMetrics, err := sClient.CallSpectrumAPI("lssystem", true)
 	// This is a sample output of lssystem
 	// {
@@ -225,7 +225,7 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 		logger.Errorf("Executing lssystem cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lssystem: ", systemMetrics)
+	logger.Debugln("response of lssystem: ", systemMetrics)
 
 	labelvalues := []string{sClient.Hostname}
 	if len(utils.ExtraLabelValues) > 0 {
@@ -407,7 +407,7 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 		logger.Errorf("Executing lsmdisk cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lsmdisk: ", mDiskResp)
+	logger.Debugln("response of lsmdisk: ", mDiskResp)
 	/* 	This is a sample output of lsmdisk
 	[
 	    {
@@ -432,7 +432,7 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	    }
 	] */
 	if !gjson.Valid(mDiskResp) {
-		return fmt.Errorf("invalid json for lsmdisk:\n%v", mDiskResp)
+		return fmt.Errorf("invalid json for lsmdisk: %v", mDiskResp)
 	}
 	mDisks := gjson.Parse(mDiskResp).Array()
 	var drive_thin_savings uint64
@@ -443,7 +443,7 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 			logger.Errorf("Executing lsmdisk/%s cmd failed: %s", mdisk_name, err)
 			return err
 		}
-		logger.Debugln("Response of lsmdisk/", mdisk_name, ": ", mDiskDetailResp)
+		logger.Debugln("response of lsmdisk/", mdisk_name, ": ", mDiskDetailResp)
 		/* This is a sample output of lsmdisk/mdisk0
 		{
 			"id": "0",
@@ -467,7 +467,7 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 			"effective_used_capacity": "181.33GB"
 		} */
 		if !gjson.Valid(mDiskDetailResp) {
-			return fmt.Errorf("invalid json for lscloudcallhome:\n%v", mDiskDetailResp)
+			return fmt.Errorf("invalid json for lscloudcallhome: %v", mDiskDetailResp)
 		}
 		allocated_capapcity_bytes, _ := utils.ToBytes(gjson.Get(mDiskDetailResp, "allocated_capacity").String())
 		effective_used_capacity_bytes, _ := utils.ToBytes(gjson.Get(mDiskDetailResp, "effective_used_capacity").String())
@@ -484,6 +484,6 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	mdiskgrp_capacity_usage_value := float64(total_mdisk_capacity_bytes-total_free_space_bytes-total_reclaimable_capacity_bytes) / float64(total_mdisk_capacity_bytes) * 100
 	ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity_usage, prometheus.GaugeValue, mdiskgrp_capacity_usage_value, labelvalues...)
 
-	logger.Debugln("Leaving System collector.")
+	logger.Debugln("exit System collector.")
 	return nil
 }

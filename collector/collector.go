@@ -48,7 +48,7 @@ func registerCollector(collector string, isDefaultEnabled bool, factory func() (
 	}
 
 	flagName := fmt.Sprintf("collector.%s", collector)
-	flagHelp := fmt.Sprintf("Enable the %s collector (default: %s).", collector, helpDefaultState)
+	flagHelp := fmt.Sprintf("enable the %s collector (default: %s)", collector, helpDefaultState)
 	defaultValue := fmt.Sprintf("%v", isDefaultEnabled)
 
 	flag := kingpin.Flag(flagName, flagHelp).Default(defaultValue).Bool()
@@ -76,12 +76,12 @@ func NewSVCCollector(targets []utils.Target, tokenCaches map[string]*utils.AuthT
 
 		hosts = targets
 		collectors = make(map[string]Collector)
-		logger.Infof("Enabled metrics collectors:")
+		logger.Infof("enabled metrics collectors:")
 		for key, enabled := range collectorState {
 			if *enabled {
 				collector, err = factories[key]()
 				if err != nil {
-					logger.Errorln("Failed to load metrics collector: ", key)
+					logger.Errorln("failed to load metrics collector: ", key)
 					return
 				}
 				collectors[key] = collector
@@ -146,7 +146,7 @@ func (c *svcCollector) collectForHost(host utils.Target, ch chan<- prometheus.Me
 	counter, success = sClients[host.IpAddress].RenewAuthToken(true)
 
 	if success == 0 {
-		logger.Errorln("No valid auth token, skip executing metrics collectors")
+		logger.Errorln("no valid auth token, skip executing metrics collectors")
 	} else {
 		for k, col := range collectors {
 			err := col.Collect(*spectrumClient, ch)

@@ -48,7 +48,7 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 	retVal := 0 // 0: failed, 1: success
 	if s.AuthTokenCache.Token != "" {
 		if time.Since(s.AuthTokenCache.UpdateTime).Seconds() < 28 {
-			logger.Debugln("Return existing token updated in 28s")
+			logger.Debugln("return existing token updated in 28s")
 			return *s.ColCounter, 1
 		}
 
@@ -65,13 +65,13 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 				   			} */
 				retVal = 1
 			} else {
-				logger.Debugf("It's been %.0f minutes since the token update", updatePassedMins)
+				logger.Debugf("it's been %.0f minutes since the token update", updatePassedMins)
 			}
 			if retVal == 1 {
 				if s.Hostname == "" {
 					s.Hostname = s.AuthTokenCache.Hostname
 				}
-				logger.Debugf("Return cached token updated in %.0f minutes", updatePassedMins)
+				logger.Debugf("return cached token updated in %.0f minutes", updatePassedMins)
 				return *s.ColCounter, retVal
 			}
 		}
@@ -79,14 +79,14 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 	// Start to renew auth token
 	lc := 0
 	for lc = 0; lc < 3; lc++ {
-		logger.Debugln("Getting authToken for ", s.IpAddress)
-		authtoken, err := s.retriveAuthToken()
+		logger.Debugln("getting authToken for ", s.IpAddress)
+		authtoken, err := s.retrieveAuthToken()
 		if err != nil {
-			logger.Errorf("Failed to request auth token for %s, the error is: %v.", s.IpAddress, err)
+			logger.Errorf("failed to request auth token for %s, the error is: %v", s.IpAddress, err)
 			s.ColCounter.AuthTokenRenewFailureCount++
 			return *s.ColCounter, retVal
 		}
-		logger.Debugln("Got new authToken for ", s.IpAddress)
+		logger.Debugln("got new authToken for ", s.IpAddress)
 
 		s.AuthTokenCache.Token = authtoken
 		if !s.AuthTokenCache.UpdateTime.IsZero() {
@@ -96,7 +96,7 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 
 		//test to make sure that current auth token is good
 		if needVerify {
-			logger.Debugln("Verify new auth token for ", s.IpAddress)
+			logger.Debugln("verify new auth token for ", s.IpAddress)
 			i := 0
 			for i < 2 {
 				systemMetrics, err := s.CallSpectrumAPI("lssystem", false)
@@ -116,10 +116,10 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 			}
 			if i > 1 { //auth token verification failed
 				s.AuthTokenCache.Token = ""
-				logger.Infof("\nToken verification failed for %s, re-requesting authtoken....", s.IpAddress)
+				logger.Infof("token verification failed for %s, re-requesting authtoken....", s.IpAddress)
 				lc++
 			} else { //auth token verification succeeded
-				logger.Debugln("New auth token verified successfully for ", s.IpAddress)
+				logger.Debugln("new auth token verified successfully for ", s.IpAddress)
 				break
 			}
 		} else {
@@ -128,17 +128,17 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 	}
 	if lc > 2 {
 		s.ColCounter.AuthTokenRenewFailureCount++
-		logger.Errorf("Failed getting auth token for %s, please check network or username and password", s.IpAddress)
+		logger.Errorf("failed getting auth token for %s, please check network or username and password", s.IpAddress)
 		retVal = 0
 	} else {
-		logger.Debugln("Generated new auth token for ", s.IpAddress)
+		logger.Debugln("generated new auth token for ", s.IpAddress)
 		s.ColCounter.AuthTokenRenewSuccessCount++
 		retVal = 1
 	}
 	return *s.ColCounter, retVal
 }
 
-func (s *SpectrumClient) retriveAuthToken() (authToken string, err error) {
+func (s *SpectrumClient) retrieveAuthToken() (authToken string, err error) {
 	requestURL := "https://" + s.IpAddress + ":7443/rest/auth"
 	httpClient := &http.Client{Transport: &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
@@ -155,25 +155,25 @@ func (s *SpectrumClient) retriveAuthToken() (authToken string, err error) {
 	},
 		Timeout: 45 * time.Second,
 	}
-	logger.Debugf("Skip verifying the server cert: %v", !s.VerifyCert)
+	logger.Debugf("skip verifying the server cert: %v", !s.VerifyCert)
 	req, _ := http.NewRequest("POST", requestURL, nil)
 	req.Header.Add("X-Auth-Username", s.UserName)
 	req.Header.Add("X-Auth-Password", s.Password)
 	// req.SetBasicAuth(s.UserName, s.Password)
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("\nError connecting to : %s. the error is: %s", requestURL, err.Error())
+		return "", fmt.Errorf("error connecting to : %s. the error is: %s", requestURL, err.Error())
 	}
 	defer resp.Body.Close()
 
-	logger.Debugf("Response Status Code: %v", resp.StatusCode)
-	logger.Debugf("Response Status: %v", resp.Status)
+	logger.Debugf("response's status code: %v", resp.StatusCode)
+	logger.Debugf("response's status: %v", resp.Status)
 
 	respbody, err := ioutil.ReadAll(resp.Body)
 	body := string(respbody)
 	logger.Debugf("Response Body: %s", body)
 	if resp.StatusCode != 200 {
-		return "", fmt.Errorf("\nhttp status code is %v when accessing URL: %s\n Body text is: %s", resp.StatusCode, requestURL, body)
+		return "", fmt.Errorf("http status code is %v when accessing URL: %s. Body text is: %s", resp.StatusCode, requestURL, body)
 	}
 	authToken = gjson.Get(body, "token").String()
 	return authToken, nil
@@ -195,7 +195,7 @@ func (s *SpectrumClient) CallSpectrumAPI(restCmd string, autoRenewToken bool) (b
 		TLSClientConfig:       &tls.Config{InsecureSkipVerify: !s.VerifyCert},
 	},
 		Timeout: 45 * time.Second}
-	logger.Debugf("Skip verifying the server cert: %v", !s.VerifyCert)
+	logger.Debugf("skip verifying the server cert: %v", !s.VerifyCert)
 	// New POST request
 	req, _ := http.NewRequest("POST", requestURL, nil)
 	// header parameters
@@ -206,16 +206,16 @@ func (s *SpectrumClient) CallSpectrumAPI(restCmd string, autoRenewToken bool) (b
 	//var resp *http.Response
 	resp, err := httpClient.Do(req)
 	if err != nil {
-		logger.Debugf("\n - Error connecting to Spectrum: %s", err.Error())
-		return "", fmt.Errorf("\nError connecting to : %s. the error is: %s", requestURL, err.Error())
+		logger.Debugf("error connecting to Spectrum: %s", err.Error())
+		return "", fmt.Errorf("error connecting to : %s. the error is: %s", requestURL, err.Error())
 	}
-	if autoRenewToken && resp.StatusCode == 403 {
-		logger.Infoln("Token is invalid, start to auto renew auth token.")
+	if autoRenewToken && (resp.StatusCode == 401 || resp.StatusCode == 403) {
+		logger.Infoln("token is invalid, start to auto renew auth token")
 		_, success := s.RenewAuthToken(false)
 		if success == 0 {
-			return "", fmt.Errorf("\nFailed to auto renew auth token for %s", s.IpAddress)
+			return "", fmt.Errorf("failed to auto renew auth token for %s", s.IpAddress)
 		}
-		logger.Infoln("Auto renewed token and retry rest cmd.")
+		logger.Infoln("auto renewed token and retry rest cmd")
 		req, _ := http.NewRequest("POST", requestURL, nil)
 		req.Header.Add("Accept", "application/json")
 		req.Header.Add("Content-Type", "application/json")
@@ -223,16 +223,16 @@ func (s *SpectrumClient) CallSpectrumAPI(restCmd string, autoRenewToken bool) (b
 		logger.Debugf("Re-request %s using token: %s", requestURL, s.AuthTokenCache.Token)
 		resp, err = httpClient.Do(req)
 		if err != nil {
-			logger.Debugf("\n - Error connecting to Spectrum: %s", err.Error())
-			return "", fmt.Errorf("\nError connecting to : %s. the error is: %s", requestURL, err.Error())
+			logger.Debugf("error connecting to Spectrum: %s", err.Error())
+			return "", fmt.Errorf("error connecting to : %s. the error is: %s", requestURL, err.Error())
 		}
 	}
 	defer resp.Body.Close()
 	respbody, err := ioutil.ReadAll(resp.Body)
 	body = string(respbody)
 	if resp.StatusCode != 200 {
-		logger.Debugf("\nhttp status code is %v when accessing URL: %s\n Body text is: %s\n", resp.StatusCode, requestURL, body)
-		return "", fmt.Errorf("\nhttp status code is %v when accessing URL: %s\n Body text is: %s", resp.StatusCode, requestURL, body)
+		logger.Debugf("http status code is %v when accessing URL: %s. Body text is: %s", resp.StatusCode, requestURL, body)
+		return "", fmt.Errorf("http status code is %v when accessing URL: %s. Body text is: %s", resp.StatusCode, requestURL, body)
 	}
 	return body, nil
 }

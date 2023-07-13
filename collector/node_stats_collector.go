@@ -105,13 +105,13 @@ func (*nodeStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	logger.Debugln("Entering NodeStats collector ...")
+	logger.Debugln("entering NodeStats collector ...")
 	nodeStatsResp, err := sClient.CallSpectrumAPI("lsnodestats", true)
 	if err != nil {
 		logger.Errorf("Executing lsnodestats cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lsnodestats: ", nodeStatsResp)
+	logger.Debugln("response of lsnodestats: ", nodeStatsResp)
 	// This is a sample output of lsnodestats
 	// [
 	// {
@@ -179,6 +179,6 @@ func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- pro
 		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[i].Get("stat_current").Float(), labelvalues...)
 		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("stat_current").Float(), labelvalues_a...)
 	}
-	logger.Debugln("Leaving NodeStats collector.")
+	logger.Debugln("exit NodeStats collector")
 	return nil
 }

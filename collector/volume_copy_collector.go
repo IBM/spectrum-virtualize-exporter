@@ -39,13 +39,13 @@ func (*volumeCopyCollector) Describe(ch chan<- *prometheus.Desc) {
 
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *volumeCopyCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	logger.Debugln("Entering volumeCopy collector ...")
+	logger.Debugln("entering volumeCopy collector ...")
 	volumeCopyResp, err := sClient.CallSpectrumAPI("lsvdiskcopy", true)
 	if err != nil {
 		logger.Errorf("Executing lsvdiskcopy cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lsvdiskcopy: ", volumeCopyResp)
+	logger.Debugln("response of lsvdiskcopy: ", volumeCopyResp)
 	// This is a sample output of lsvdiskcopy
 	// [
 	// {
@@ -81,6 +81,6 @@ func (c *volumeCopyCollector) Collect(sClient utils.SpectrumClient, ch chan<- pr
 		}
 		ch <- prometheus.MustNewConstMetric(volumeCopy_Capacity, prometheus.GaugeValue, float64(volumeCopy_capacity_bytes), labelvalues...)
 	}
-	logger.Debugln("Leaving volumeCopy collector.")
+	logger.Debugln("exit volumeCopy collector")
 	return nil
 }

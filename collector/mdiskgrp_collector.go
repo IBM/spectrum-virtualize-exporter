@@ -42,7 +42,7 @@ func NewMdiskgrpCollector() (Collector, error) {
 	if len(utils.ExtraLabelNames) > 0 {
 		labelnames = append(labelnames, utils.ExtraLabelNames...)
 	}
-	mdiskgrp_capacity = prometheus.NewDesc(prefix_mdiskgrp+"capacity", "The total amount of MDisk storage that is assigned to the storage pool..", labelnames, nil)
+	mdiskgrp_capacity = prometheus.NewDesc(prefix_mdiskgrp+"capacity", "The total amount of MDisk storage that is assigned to the storage pool.", labelnames, nil)
 	extent_size = prometheus.NewDesc(prefix_mdiskgrp+"extent_size", "The sizes of the extents for this group", labelnames, nil)
 	free_capacity = prometheus.NewDesc(prefix_mdiskgrp+"free_capacity", "The amount of MDisk storage that is immediately available. Additionally, reclaimable_capacity can eventually become available", labelnames, nil)
 	virtual_capacity = prometheus.NewDesc(prefix_mdiskgrp+"virtual_capacity", "The total host mappable capacity of all volume copies in the storage pool.", labelnames, nil)
@@ -85,13 +85,13 @@ func (*mdiskgrpCollector) Describe(ch chan<- *prometheus.Desc) {
 //Collect collects metrics from Spectrum Virtualize Restful API
 func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	logger.Debugln("Entering MDiskgrp collector ...")
+	logger.Debugln("entering MDiskgrp collector ...")
 	mDiskGrpResp, err := sClient.CallSpectrumAPI("lsmdiskgrp", true)
 	if err != nil {
 		logger.Errorf("Executing lsmdiskgrp cmd failed: %s", err.Error())
 		return err
 	}
-	logger.Debugln("Response of lsmdiskgrp: ", mDiskGrpResp)
+	logger.Debugln("response of lsmdiskgrp: ", mDiskGrpResp)
 	// This is a sample output of lsmdiskgrp
 	// 	[
 	//     {
@@ -234,6 +234,6 @@ func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prom
 		}
 		ch <- prometheus.MustNewConstMetric(reclaimable_capacity, prometheus.GaugeValue, float64(reclaimable_capacity_bytes), labelvalues...)
 	}
-	logger.Debugln("Leaving MDiskgrp collector.")
+	logger.Debugln("exit MDiskgrp collector")
 	return nil
 }
