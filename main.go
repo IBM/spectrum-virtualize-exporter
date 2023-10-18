@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
@@ -86,21 +87,28 @@ func main() {
 	r.HandleFunc("/", rootFunc)
 
 	if cfg.TlsServerConfig.CaCert != "" && cfg.TlsServerConfig.ServerCert != "" && cfg.TlsServerConfig.ServerKey != "" {
-		startHTTPS(CSRF(r), cfg.TlsServerConfig.CaCert, cfg.TlsServerConfig.ServerCert, cfg.TlsServerConfig.ServerKey)
+		startHTTPS(CSRF(r))
 	} else {
 		startHTTP(CSRF(r))
 	}
 }
 
 func startHTTP(handler http.Handler) {
+	server := http.Server{
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  45 * time.Second,
+		Addr:         *listenAddress,
+		Handler:      handler,
+	}
 	logger.Infof("Listening(HTTP) for %s on %s\n", *metricsContext, *listenAddress)
 	logger.Infof("Listening(HTTP) for %s on %s\n", *settingsContext, *listenAddress)
-	logger.Fatal(http.ListenAndServe(*listenAddress, handler))
+	logger.Fatal(server.ListenAndServe())
 }
 
-func startHTTPS(handler http.Handler, ca_cert string, server_cert string, server_key string) {
+func startHTTPS(handler http.Handler) {
 	// load CA certificate file and add it to list of client CAs
-	caCertFile, err := ioutil.ReadFile(ca_cert)
+	caCertFile, err := ioutil.ReadFile(cfg.TlsServerConfig.CaCert)
 	if err != nil {
 		logger.Fatalf("error reading CA certificate: %s", err.Error())
 	}
@@ -115,29 +123,40 @@ func startHTTPS(handler http.Handler, ca_cert string, server_cert string, server
 		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 		PreferServerCipherSuites: true,
 		CipherSuites: []uint16{
-			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
-			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
-			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
 			tls.TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305,
+			tls.TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305,
+			tls.TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256,
 		},
 	}
 
 	server := http.Server{
-		Addr:      *listenAddress,
-		Handler:   handler,
-		TLSConfig: tlsConfig,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  45 * time.Second,
+		Addr:         *listenAddress,
+		Handler:      handler,
+		TLSConfig:    tlsConfig,
 	}
 
 	logger.Infof("Listening(HTTPS) for %s on %s\n", *metricsContext, *listenAddress)
 	logger.Infof("Listening(HTTPS) for %s on %s\n", *settingsContext, *listenAddress)
-	logger.Fatal(server.ListenAndServeTLS(server_cert, server_key))
+	logger.Fatal(server.ListenAndServeTLS(cfg.TlsServerConfig.ServerCert, cfg.TlsServerConfig.ServerKey))
 }
 
 func rootFunc(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
-		w.Write([]byte(`<html>
+		_, _ = w.Write([]byte(`<html>
 		<head><title>Spectrum Virtualize exporter</title></head>
 		<body>
 			<h1>Spectrum Virtualize exporter</h1>
@@ -198,7 +217,7 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logger.Warnln("Couldn't create handler:", err)
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(fmt.Sprintf("Couldn't create handler: %s", err.Error())))
+			_, _ = w.Write([]byte(fmt.Sprintf("Couldn't create handler: %s", err.Error())))
 			return
 		}
 		handler.ServeHTTP(w, r)

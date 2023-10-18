@@ -50,7 +50,7 @@ func (c *ipCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus
 
 	for ip_name, ip_address := range hosts {
 		cmd := fmt.Sprintf("ping -c 1 -w 2 %s> /dev/null 2>&1 && echo $? || echo $?", ip_address)
-		respData, err := exec.Command("/bin/sh", "-c", cmd).Output()
+		respData, err := exec.Command("/bin/sh", "-c", cmd).Output() // #nosec G204
 		if err != nil {
 			logger.Errorf("Ping %s failed: %s", ip_address, err.Error())
 			return err
