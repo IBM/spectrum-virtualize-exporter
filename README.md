@@ -69,7 +69,6 @@ targets:
   - ipAddress: IP address
     userid: user
     password: password
-    verifyCert: true
 extra_labels:
   - name: pod_name
     value: pod_value

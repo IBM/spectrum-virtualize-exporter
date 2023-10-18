@@ -10,13 +10,13 @@ type Config struct {
 	Targets         []Target        `yaml:"targets"`
 	ExtraLabels     []Label         `yaml:"extra_labels"`
 	TlsServerConfig TlsServerConfig `yaml:"tls_server_config"`
+	filename        string
 }
 
 type Target struct {
-	IpAddress  string `yaml:"ipAddress"`
-	Userid     string `yaml:"userid"`
-	Password   string `yaml:"password"`
-	VerifyCert bool   `yaml:"verifyCert"`
+	IpAddress string `yaml:"ipAddress"`
+	Userid    string `yaml:"userid"`
+	Password  string `yaml:"password"`
 }
 
 type Label struct {
@@ -30,10 +30,14 @@ type TlsServerConfig struct {
 	ServerKey  string `yaml:"server_key"`
 }
 
-//Load loads a config from filename
-func (cfg *Config) _Init(filename string) (*Config, error) {
+func (cfg *Config) SetFilename(filename string) {
+	cfg.filename = filename
+}
 
-	content, err := ioutil.ReadFile(filename)
+//Load loads a config from filename
+func (cfg *Config) _Init() (*Config, error) {
+
+	content, err := ioutil.ReadFile(cfg.filename)
 	if err != nil {
 		return nil, err
 	}
@@ -46,5 +50,5 @@ func (cfg *Config) _Init(filename string) (*Config, error) {
 }
 func GetConfig(filename string) (*Config, error) {
 	var cfg Config
-	return cfg._Init(filename)
+	return cfg._Init()
 }
