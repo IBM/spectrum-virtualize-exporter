@@ -151,11 +151,10 @@ func (s *SpectrumClient) retrieveAuthToken() (authToken string, err error) {
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig:       &tls.Config{InsecureSkipVerify: !s.VerifyCert},
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: false, MinVersion: tls.VersionTLS12},
 	},
 		Timeout: 45 * time.Second,
 	}
-	logger.Debugf("skip verifying the server cert: %v", !s.VerifyCert)
 	req, _ := http.NewRequest("POST", requestURL, nil)
 	req.Header.Add("X-Auth-Username", s.UserName)
 	req.Header.Add("X-Auth-Password", s.Password)
@@ -192,10 +191,9 @@ func (s *SpectrumClient) CallSpectrumAPI(restCmd string, autoRenewToken bool) (b
 		IdleConnTimeout:       90 * time.Second,
 		TLSHandshakeTimeout:   10 * time.Second,
 		ExpectContinueTimeout: 1 * time.Second,
-		TLSClientConfig:       &tls.Config{InsecureSkipVerify: !s.VerifyCert},
+		TLSClientConfig:       &tls.Config{InsecureSkipVerify: false, MinVersion: tls.VersionTLS12},
 	},
 		Timeout: 45 * time.Second}
-	logger.Debugf("skip verifying the server cert: %v", !s.VerifyCert)
 	// New POST request
 	req, _ := http.NewRequest("POST", requestURL, nil)
 	// header parameters
