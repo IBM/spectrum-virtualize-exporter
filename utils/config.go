@@ -1,7 +1,7 @@
 package utils
 
 import (
-	"io/ioutil"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
@@ -34,10 +34,10 @@ func (cfg *Config) SetFilename(filename string) {
 	cfg.filename = filename
 }
 
-//Load loads a config from filename
+// Load loads a config from filename
 func (cfg *Config) _Init() (*Config, error) {
 
-	content, err := ioutil.ReadFile(cfg.filename)
+	content, err := os.ReadFile(cfg.filename)
 	if err != nil {
 		return nil, err
 	}
@@ -50,5 +50,6 @@ func (cfg *Config) _Init() (*Config, error) {
 }
 func GetConfig(filename string) (*Config, error) {
 	var cfg Config
+	cfg.SetFilename(filename)
 	return cfg._Init()
 }

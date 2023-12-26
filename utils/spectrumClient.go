@@ -3,7 +3,7 @@ package utils
 import (
 	"crypto/tls"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
 	"sync"
@@ -168,7 +168,7 @@ func (s *SpectrumClient) retrieveAuthToken() (authToken string, err error) {
 	logger.Debugf("response's status code: %v", resp.StatusCode)
 	logger.Debugf("response's status: %v", resp.Status)
 
-	respbody, err := ioutil.ReadAll(resp.Body)
+	respbody, err := io.ReadAll(resp.Body)
 	body := string(respbody)
 	logger.Debugf("Response Body: %s", body)
 	if resp.StatusCode != 200 {
@@ -226,7 +226,7 @@ func (s *SpectrumClient) CallSpectrumAPI(restCmd string, autoRenewToken bool) (b
 		}
 	}
 	defer resp.Body.Close()
-	respbody, err := ioutil.ReadAll(resp.Body)
+	respbody, err := io.ReadAll(resp.Body)
 	body = string(respbody)
 	if resp.StatusCode != 200 {
 		logger.Debugf("http status code is %v when accessing URL: %s. Body text is: %s", resp.StatusCode, requestURL, body)
