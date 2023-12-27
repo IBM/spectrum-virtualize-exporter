@@ -4,8 +4,8 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"io/ioutil"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -108,7 +108,7 @@ func startHTTP(handler http.Handler) {
 
 func startHTTPS(handler http.Handler) {
 	// load CA certificate file and add it to list of client CAs
-	caCertFile, err := ioutil.ReadFile(cfg.TlsServerConfig.CaCert)
+	caCertFile, err := os.ReadFile(cfg.TlsServerConfig.CaCert)
 	if err != nil {
 		logger.Fatalf("error reading CA certificate: %s", err.Error())
 	}
