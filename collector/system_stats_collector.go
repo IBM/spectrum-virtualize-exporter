@@ -97,7 +97,7 @@ func NewSystemStatsCollector() (Collector, error) {
 	return &systemStatsCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*systemStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 	for _, metric := range metrics {
@@ -106,7 +106,7 @@ func (*systemStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	logger.Debugln("entering SystemStats collector ...")
 	systemStatsResp, err := sClient.CallSpectrumAPI("lssystemstats", true)

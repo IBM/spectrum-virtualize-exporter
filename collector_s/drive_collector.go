@@ -21,7 +21,7 @@ func init() {
 	registerCollector("lsdrive", defaultEnabled, NewDriveCollector)
 }
 
-//driveCollector collects drive setting metrics
+// driveCollector collects drive setting metrics
 type DriveCollector struct {
 }
 
@@ -40,14 +40,14 @@ func NewDriveCollector() (Collector, error) {
 	return &DriveCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*DriveCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- drive_status
 	ch <- drive_firmware_level
 	ch <- drive_firmware_level_consistency
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *DriveCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering drive collector ...")

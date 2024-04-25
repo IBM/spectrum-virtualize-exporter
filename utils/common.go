@@ -55,7 +55,7 @@ func ToBytes(s string) (uint64, error) {
 	}
 }
 
-//ToBool parses a string formatted to bool, but prometheus only accepts float64 formatted data, so this function retuns float64 formatted.
+// ToBool parses a string formatted to bool, but prometheus only accepts float64 formatted data, so this function retuns float64 formatted.
 func ToBool(s string) (float64, error) {
 	s = strings.TrimSpace(s)
 	s = strings.ToUpper(s)

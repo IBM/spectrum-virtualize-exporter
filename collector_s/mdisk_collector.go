@@ -18,7 +18,7 @@ func init() {
 	registerCollector("lsmdisk_s", defaultEnabled, NewMdiskCollector)
 }
 
-//mdiskCollector collects mdisk metrics
+// mdiskCollector collects mdisk metrics
 type mdiskCollector struct {
 }
 
@@ -31,12 +31,12 @@ func NewMdiskCollector() (Collector, error) {
 	return &mdiskCollector{}, nil
 }
 
-//Describe() describes the metrics
+// Describe() describes the metrics
 func (*mdiskCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- mdisk_status
 }
 
-//Collect() collects metrics from Spectrum Virtualize Restful API
+// Collect() collects metrics from Spectrum Virtualize Restful API
 func (c *mdiskCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering MDisk collector ...")

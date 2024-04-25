@@ -19,7 +19,7 @@ func init() {
 	registerCollector("lsportfc", defaultEnabled, NewPortfcCollector)
 }
 
-//portfcCollector collects portfc setting metrics
+// portfcCollector collects portfc setting metrics
 type portfcCollector struct {
 }
 
@@ -35,13 +35,13 @@ func NewPortfcCollector() (Collector, error) {
 	return &portfcCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*portfcCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- portfc_status
 	ch <- portfc_attachment
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *portfcCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering portfc collector ...")

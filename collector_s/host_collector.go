@@ -18,7 +18,7 @@ func init() {
 	registerCollector("lshost", defaultEnabled, NewHostCollector)
 }
 
-//hostCollector collects host setting metrics
+// hostCollector collects host setting metrics
 type hostCollector struct {
 }
 
@@ -31,12 +31,12 @@ func NewHostCollector() (Collector, error) {
 	return &hostCollector{}, nil
 }
 
-//Describe() describes the metrics
+// Describe() describes the metrics
 func (*hostCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- host_status
 }
 
-//Collect() collects metrics from Spectrum Virtualize Restful API
+// Collect() collects metrics from Spectrum Virtualize Restful API
 func (c *hostCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering host collector ...")

@@ -19,7 +19,7 @@ func init() {
 	registerCollector("lsenclosurebattery", defaultEnabled, NewEnclosureBatteryCollector)
 }
 
-//enclosureBatteryCollector collects enclosurebattery setting metrics
+// enclosureBatteryCollector collects enclosurebattery setting metrics
 type enclosureBatteryCollector struct {
 }
 
@@ -35,13 +35,13 @@ func NewEnclosureBatteryCollector() (Collector, error) {
 	return &enclosureBatteryCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*enclosureBatteryCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- battery_status
 	ch <- battery_end_of_life_warning
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *enclosureBatteryCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering enclosurebattery collector ...")

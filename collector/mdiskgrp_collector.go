@@ -33,7 +33,7 @@ func init() {
 	registerCollector("lsmdiskgrp", defaultDisabled, NewMdiskgrpCollector)
 }
 
-//mdiskgrpCollector collects mdisk metrics
+// mdiskgrpCollector collects mdisk metrics
 type mdiskgrpCollector struct {
 }
 
@@ -62,7 +62,7 @@ func NewMdiskgrpCollector() (Collector, error) {
 	return &mdiskgrpCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*mdiskgrpCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- mdiskgrp_capacity
 	ch <- extent_size
@@ -82,7 +82,7 @@ func (*mdiskgrpCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- reclaimable_capacity
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering MDiskgrp collector ...")

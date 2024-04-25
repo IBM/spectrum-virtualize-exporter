@@ -16,7 +16,7 @@ func init() {
 	registerCollector("lscloudcallhome", defaultEnabled, NewCallhomeInfoCollector)
 }
 
-//callhomeInfoCollector collects callhome setting metrics
+// callhomeInfoCollector collects callhome setting metrics
 type callhomeInfoCollector struct {
 }
 
@@ -30,12 +30,12 @@ func NewCallhomeInfoCollector() (Collector, error) {
 	return &callhomeInfoCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*callhomeInfoCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- callhomeInfo
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *callhomeInfoCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering Callhome collector ...")

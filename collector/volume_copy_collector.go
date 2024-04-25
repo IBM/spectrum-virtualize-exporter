@@ -16,7 +16,7 @@ func init() {
 	registerCollector("lsvdiskcopy", defaultDisabled, NewVolumeCopyCollector)
 }
 
-//volumeCopyCollector collects volume cpoy metrics
+// volumeCopyCollector collects volume cpoy metrics
 type volumeCopyCollector struct {
 }
 
@@ -30,14 +30,14 @@ func NewVolumeCopyCollector() (Collector, error) {
 	return &volumeCopyCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*volumeCopyCollector) Describe(ch chan<- *prometheus.Desc) {
 
 	ch <- volumeCopy_Capacity
 
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *volumeCopyCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	logger.Debugln("entering volumeCopy collector ...")
 	volumeCopyResp, err := sClient.CallSpectrumAPI("lsvdiskcopy", true)

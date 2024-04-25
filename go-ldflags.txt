@@ -1,0 +1,5 @@
+-X 'github.com/prometheus/common/version.Version=$BLAZE_VERSION'
+-X 'github.com/prometheus/common/version.Revision=$BLAZE_GIT_COMMIT'
+-X 'github.com/prometheus/common/version.Branch=$BRANCH_NAME'
+-X 'github.com/prometheus/common/version.BuildUser=zaas-cicd'
+-X 'github.com/prometheus/common/version.BuildDate=$(date)'

@@ -18,7 +18,7 @@ func init() {
 	registerCollector("lsnodecanister", defaultEnabled, NewNodecanisterCollector)
 }
 
-//nodecanisterCollector collects nodecanister setting metrics
+// nodecanisterCollector collects nodecanister setting metrics
 type nodecanisterCollector struct {
 }
 
@@ -31,12 +31,12 @@ func NewNodecanisterCollector() (Collector, error) {
 	return &nodecanisterCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*nodecanisterCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- nodecanister_status
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *nodecanisterCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering nodecanister collector ...")

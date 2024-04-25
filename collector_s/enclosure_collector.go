@@ -18,7 +18,7 @@ func init() {
 	registerCollector("lsenclosure", defaultEnabled, NewEnclosureCollector)
 }
 
-//enclosureCollector collects enclosure setting metrics
+// enclosureCollector collects enclosure setting metrics
 type enclosureCollector struct {
 }
 
@@ -31,12 +31,12 @@ func NewEnclosureCollector() (Collector, error) {
 	return &enclosureCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*enclosureCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- enclosure_status
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *enclosureCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering enclosure collector ...")

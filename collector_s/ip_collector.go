@@ -19,7 +19,7 @@ func init() {
 	registerCollector("ip", defaultEnabled, NewIPCollector)
 }
 
-//ipCollector collects ip setting metrics
+// ipCollector collects ip setting metrics
 type ipCollector struct {
 }
 
@@ -32,12 +32,12 @@ func NewIPCollector() (Collector, error) {
 	return &ipCollector{}, nil
 }
 
-//Describe() describes the metrics
+// Describe() describes the metrics
 func (*ipCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- ip_status
 }
 
-//Collect() collects metrics from Spectrum Virtualize Restful API
+// Collect() collects metrics from Spectrum Virtualize Restful API
 func (c *ipCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering IP collector ...")

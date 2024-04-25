@@ -16,7 +16,7 @@ func init() {
 	registerCollector("lsnodestats", defaultDisabled, NewNodeStatsCollector)
 }
 
-//nodeStatsCollector collects nodeStats metrics
+// nodeStatsCollector collects nodeStats metrics
 type nodeStatsCollector struct {
 }
 
@@ -93,7 +93,7 @@ func NewNodeStatsCollector() (Collector, error) {
 	return &nodeStatsCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*nodeStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 	for _, nodestat_metric := range nodeStats_metrics {
@@ -102,7 +102,7 @@ func (*nodeStatsCollector) Describe(ch chan<- *prometheus.Desc) {
 
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
 	logger.Debugln("entering NodeStats collector ...")

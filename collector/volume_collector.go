@@ -16,7 +16,7 @@ func init() {
 	registerCollector("lsvdisk", defaultDisabled, NewVolumeCollector)
 }
 
-//volumeCollector collects vdisk metrics
+// volumeCollector collects vdisk metrics
 type volumeCollector struct {
 }
 
@@ -30,14 +30,14 @@ func NewVolumeCollector() (Collector, error) {
 	return &volumeCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*volumeCollector) Describe(ch chan<- *prometheus.Desc) {
 
 	ch <- volumeCapacity
 
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *volumeCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	logger.Debugln("entering volume collector ...")
 	volumeResp, err := sClient.CallSpectrumAPI("lsvdisk", true)

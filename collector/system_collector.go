@@ -93,7 +93,7 @@ func NewSystemCollector() (Collector, error) {
 	return &systemCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- total_mdisk_capacity
 	ch <- space_in_mdisk_grps
@@ -128,7 +128,7 @@ func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- mdiskgrp_capacity_usage
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 	logger.Debugln("entering System collector ...")
 	systemMetrics, err := sClient.CallSpectrumAPI("lssystem", true)

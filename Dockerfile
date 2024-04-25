@@ -1,4 +1,4 @@
-FROM ubuntu:18.04 as pem
+FROM ubuntu:22.04 AS pem
 RUN apt update && apt install curl -y
 WORKDIR /root/
 # The links of the IBM root CA and intermediate certs are from https://daymvs1.pok.ibm.com/ibmca/certificates.do;
