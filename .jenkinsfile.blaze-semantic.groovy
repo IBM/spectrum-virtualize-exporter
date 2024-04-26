@@ -16,7 +16,7 @@ def buildInfo = bzSemantic(
     native: [
         kind: "go",
         build: [
-            platforms: ["linux/arm64", "linux/s390x"]
+            platforms: ["linux/amd64", "linux/s390x"]
         ]
     ]
 )
