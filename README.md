@@ -13,11 +13,11 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 | Flag | Description | Default Value |
 | --- | --- | --- |
 | config.file | Path to configuration file | spectrumVirtualize.yml |
-| web.telemetry-path | Path under which to expose metrics | /metrics |
+| web.metrics-context | Context under which to expose metrics | /metrics |
+| web.settings-context | Context under which to expose setting metrics | /settings |
 | web.listen-address | Address on which to expose metrics and web interface | :9119 |
 | web.disable-exporter-metrics | Exclude metrics about the exporter itself (promhttp_*, process_*, go_*) | true |
-| --collector.name | Collector are enabled, the name means name of CLI Command | By default enabled collectors: lssystem and lssystemstats. |
-| --no-collector.name | Collectors that are enabled by default can be disabled, the name means name of CLI Command | By default disabled collectors: lsnodestats, lsmdisk, lsmdiskgrp, lsvdisk and lsvdiskcopy. |
+| --collector.[name] | Enable or disable collector. The [name] is in the list "`lsmdisk`, `lsmdiskgrp`, `lsnodestats`, `lssystem`, `lssystemstats`, `lsvdisk`, `lsvdiskcopy`, `lscloudcallhome`, `lsdrive`, `lsenclosure`, `lsenclosurebattery`, `lsenclosurecanister`, `lsenclosurepsu`, `lshost`, `ip`, `lsmdisk_s`, `lsmdiskgrp_s`, `lsnodecanister`, `lsportfc`" | [true\|false]. <br> By default enabled collectors: `lssystem`, `lssystemstats`, `lscloudcallhome`, `lsdrive`, `lsenclosure`, `lsenclosurebattery`, `lsenclosurecanister`, `lsenclosurepsu`, `lshost`, `ip`, `lsmdisk_s`, `lsmdiskgrp_s`, `lsnodecanister`, `lsportfc`. |
 
 ## Building and running
 
@@ -31,7 +31,7 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
     ```bash
     export GOPATH=your_gopath
     cd your_gopath
-    git clone git@github.ibm.com:ZaaS/spectrum-virtualize-exporter.git
+    git clone https://github.com/IBM/spectrum-virtualize-exporter.git
     cd spectrum-virtualize-exporter
     make binary
     go install (Optional but recommended. This step will copy spectrum-virtualize-exporter binary package into $GOPATH/bin directory. It will be connvenient to copy the package to Monitoring docker image)
@@ -60,11 +60,25 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
 
 ## Configuration
 
-The spectrum-virtualize-exporter reads from [spectrumVirtualize.yml](spectrumVirtualize.yml) config file by default. Edit your config YAML file, Enter the IP address of the storage device, your username, and your password there.
-Optionally, the "extra_labels" can be used to add customized labels for metrics.
-Optionally, the "tls_server_config" can be used to expose metrics on https server with mTLS enabled. (Any of the "ca_cert", "server_cert" and "server_key" is not provided will start http srever without mTLS)
+The spectrum-virtualize-exporter loads the [./spectrumVirtualize.yml](spectrumVirtualize.yml) config file by default.
 
-```bash
+### Required settings
+
+* `targets.[].ipAddress`: IP address of the storage device.
+* `targets.[].userid`: Username to access the storage device.
+* `targets.[].password`: User password to access the storage device.
+
+### Optionally settings
+
+* `extra_labels.[].name`: Customized label name adding to metrics.
+* `extra_labels.[].value`: Value of the customized label.
+* `tls_server_config.ca_cert`: The CA certificate chain file in pem format for verifying client certificate.
+* `tls_server_config.server_cert`: The server's certificate chain file in pem format.
+* `tls_server_config.server_key`: The server's private key file.
+
+### Config File Sample
+
+```yaml
 targets:
   - ipAddress: IP address
     userid: user
@@ -78,7 +92,11 @@ tls_server_config:
   server_key: ./certs/server.key
 ```
 
+**If any of the "ca_cert", "server_cert" or "server_key" are not provided, the exporter http server will start without https(mTLS) enabled.**
+
 ## Exported Metrics
+
+* It recommended to scrape every 30 seconds.
 
 | RESTful API | Description | Default | Metrics | Total number of metrics |
 | --- | --- | --- | --- | --- |
@@ -92,7 +110,9 @@ tls_server_config:
 | lsvdisk | Get detailed view of volumes that are recognized by the system. | Disabled | [List](docs/lsvdisk_metrics.md) | 1 |
 | lsvdiskcopy | Get volume copy information. | Disabled | [List](docs/lsvdiskcopy_metrics.md) | 1 |
 
-## Exported Settings
+## Exported Setting Metrics
+
+* It recommended to scrape every >15 minutes.
 
 | RESTful API | Description | Default | Metrics | Total number of metrics |
 | --- | --- | --- | --- | --- |
