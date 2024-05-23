@@ -35,6 +35,7 @@ var (
 	authTokenMutexes map[string]*sync.Mutex      = make(map[string]*sync.Mutex)
 	colCounters      map[string]*utils.Counter   = make(map[string]*utils.Counter)
 	logger           log.Logger                  = *utils.SpectrumLogger()
+	https            bool                        = true
 )
 
 type handler struct {
@@ -89,6 +90,7 @@ func main() {
 	if cfg.TlsServerConfig.CaCert != "" && cfg.TlsServerConfig.ServerCert != "" && cfg.TlsServerConfig.ServerKey != "" {
 		startHTTPS(CSRF(r))
 	} else {
+		https = false
 		startHTTP(CSRF(r))
 	}
 }
@@ -151,6 +153,9 @@ func startHTTPS(handler http.Handler) {
 
 func rootFunc(w http.ResponseWriter, r *http.Request) {
 	if r.Method == "GET" {
+		if https {
+			w.Header().Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
+		}
 		_, _ = w.Write([]byte(`<html>
 		<head><title>Spectrum Virtualize exporter</title></head>
 		<body>
@@ -214,6 +219,9 @@ func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			_, _ = w.Write([]byte(fmt.Sprintf("Couldn't create handler: %s", err.Error())))
 			return
+		}
+		if https {
+			w.Header().Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload")
 		}
 		handler.ServeHTTP(w, r)
 	} else {
