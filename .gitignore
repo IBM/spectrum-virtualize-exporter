@@ -1,5 +1,6 @@
 /spectrum-virtualize-exporter
 /temp.yaml
+
 /.vscode
 /.whitesource
 /.jenkinsfile*
