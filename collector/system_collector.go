@@ -1,10 +1,10 @@
 package collector
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -43,12 +43,23 @@ var (
 	physical_capacity_usage *prometheus.Desc
 	volume_capacity_usage   *prometheus.Desc
 	mdiskgrp_capacity_usage *prometheus.Desc
-	hostname                string
 )
 
 func init() {
 	registerCollector("lssystem", defaultEnabled, NewSystemCollector)
-	labelnames := []string{"target", "resource"}
+}
+
+// systemCollector collects system metrics
+type systemCollector struct {
+}
+
+func NewSystemCollector() (Collector, error) {
+	labelnames := []string{"resource"}
+	labelnames_tier := []string{"resource", "tier"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+		labelnames_tier = append(labelnames_tier, utils.ExtraLabelNames...)
+	}
 	total_mdisk_capacity = prometheus.NewDesc(prefix_sys+"total_mdisk_capacity", "The sum of mdiskgrp capacity plus the capacity of all unmanaged MDisks", labelnames, nil)
 	space_in_mdisk_grps = prometheus.NewDesc(prefix_sys+"space_in_mdisk_grps", "The sum of mdiskgrp capacity", labelnames, nil)
 	space_allocated_to_vdisks = prometheus.NewDesc(prefix_sys+"space_allocated_to_vdisks", "The sum of mdiskgrp real_capacity", labelnames, nil)
@@ -73,25 +84,16 @@ func init() {
 	used_capacity_after_reduction = prometheus.NewDesc(prefix_sys+"used_capacity_after_reduction", "The total amount of capacity that is used for thin-provisioned and compressed volume copies in the storage pool after data reduction occurs.", labelnames, nil)
 	overhead_capacity = prometheus.NewDesc(prefix_sys+"overhead_capacity", "The overhead capacity consumption in all storage pools that is not attributed to data.", labelnames, nil)
 	deduplication_capacity_saving = prometheus.NewDesc(prefix_sys+"deduplication_capacity_saving", "The total amount of used capacity that is saved by data deduplication. This saving is before any compression.", labelnames, nil)
-
-	tier_capacity = prometheus.NewDesc(prefix_sys+"tier_capacity", "The total MDisk storage in the tier.", []string{"target", "resource", "tier"}, nil)
-	tier_free_capacity = prometheus.NewDesc(prefix_sys+"tier_free_capacity", "The amount of MDisk storage in the tier that is unused.", []string{"target", "resource", "tier"}, nil)
-
+	tier_capacity = prometheus.NewDesc(prefix_sys+"tier_capacity", "The total MDisk storage in the tier.", labelnames_tier, nil)
+	tier_free_capacity = prometheus.NewDesc(prefix_sys+"tier_free_capacity", "The amount of MDisk storage in the tier that is unused.", labelnames_tier, nil)
 	physical_capacity_usage = prometheus.NewDesc(prefix_sys+"physical_capacity_used_percent", "The physical capacity utilization", labelnames, nil)
 	volume_capacity_usage = prometheus.NewDesc(prefix_sys+"volume_capacity_used_percent", "The volume capacity utilization", labelnames, nil)
 	mdiskgrp_capacity_usage = prometheus.NewDesc(prefix_sys+"mdiskgrp_capacity_used_percent", "The mdiskgrp capacity utilization", labelnames, nil)
 
-}
-
-// systemCollector collects system metrics
-type systemCollector struct {
-}
-
-func NewSystemCollector() (Collector, error) {
 	return &systemCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- total_mdisk_capacity
 	ch <- space_in_mdisk_grps
@@ -126,13 +128,10 @@ func (*systemCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- mdiskgrp_capacity_usage
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	log.Debugln("Entering System collector ...")
-	// labelvalues := []string{sClient.IpAddress}
-	labelvalues := []string{sClient.IpAddress, sClient.Hostname}
-	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lssystem"
-	systemMetrics, err := sClient.CallSpectrumAPI(reqSystemURL)
+	logger.Debugln("entering System collector ...")
+	systemMetrics, err := sClient.CallSpectrumAPI("lssystem", true)
 	// This is a sample output of lssystem
 	// {
 	// 	"id": "0000020420400752",
@@ -223,166 +222,177 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	// }
 
 	if err != nil {
-		log.Errorf("Executing lssystem cmd failed: %s", err)
+		logger.Errorf("Executing lssystem cmd failed: %s", err.Error())
+		return err
 	}
-	log.Debugln("Response of lssystem: ", systemMetrics)
+	logger.Debugln("response of lssystem: ", systemMetrics)
+
+	labelvalues := []string{sClient.Hostname}
+	if len(utils.ExtraLabelValues) > 0 {
+		labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+	}
+
 	total_mdisk_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_mdisk_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(total_mdisk_capacity, prometheus.GaugeValue, float64(total_mdisk_capacity_bytes), labelvalues...)
 
 	space_in_mdisk_grps_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "space_in_mdisk_grps").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(space_in_mdisk_grps, prometheus.GaugeValue, float64(space_in_mdisk_grps_bytes), labelvalues...)
 
 	space_allocated_to_vdisks_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "space_allocated_to_vdisks").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(space_allocated_to_vdisks, prometheus.GaugeValue, float64(space_allocated_to_vdisks_bytes), labelvalues...)
 
 	total_free_space_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_free_space").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(total_free_space, prometheus.GaugeValue, float64(total_free_space_bytes), labelvalues...)
 
 	total_vdiskcopy_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_vdiskcopy_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(total_vdiskcopy_capacity, prometheus.GaugeValue, float64(total_vdiskcopy_capacity_bytes), labelvalues...)
 
 	total_used_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_used_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(total_used_capacity, prometheus.GaugeValue, float64(total_used_capacity_bytes), labelvalues...)
 
 	total_overallocation_pc, err := strconv.ParseFloat(gjson.Get(systemMetrics, "total_overallocation").String(), 64)
 	if err != nil {
-		log.Errorf("Parsing string as float failed: %s", err)
+		logger.Errorf("Parsing string as float failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(total_overallocation, prometheus.GaugeValue, total_overallocation_pc, labelvalues...)
 
 	total_vdisk_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_vdisk_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(total_vdisk_capacity, prometheus.GaugeValue, float64(total_vdisk_capacity_bytes), labelvalues...)
 
 	total_allocated_extent_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_allocated_extent_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(total_allocated_extent_capacity, prometheus.GaugeValue, float64(total_allocated_extent_capacity_bytes), labelvalues...)
 
 	compression_virtual_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "compression_virtual_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(compression_virtual_capacity, prometheus.GaugeValue, float64(compression_virtual_capacity_bytes), labelvalues...)
 
 	compression_compressed_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "compression_compressed_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(compression_compressed_capacity, prometheus.GaugeValue, float64(compression_compressed_capacity_bytes), labelvalues...)
 
 	compression_uncompressed_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "compression_uncompressed_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(compression_uncompressed_capacity, prometheus.GaugeValue, float64(compression_uncompressed_capacity_bytes), labelvalues...)
 
 	total_drive_raw_capacity_bytes, err := strconv.ParseFloat(gjson.Get(systemMetrics, "total_drive_raw_capacity").String(), 64)
 	if err != nil {
-		log.Errorf("Parsing string as float failed: %s", err)
+		logger.Errorf("Parsing string as float failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(total_drive_raw_capacity, prometheus.GaugeValue, float64(total_drive_raw_capacity_bytes), labelvalues...)
 
 	tier0_flash_compressed_data_used_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "tier0_flash_compressed_data_used").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(tier0_flash_compressed_data_used, prometheus.GaugeValue, float64(tier0_flash_compressed_data_used_bytes), labelvalues...)
 
 	tier1_flash_compressed_data_used_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "tier1_flash_compressed_data_used").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(tier1_flash_compressed_data_used, prometheus.GaugeValue, float64(tier1_flash_compressed_data_used_bytes), labelvalues...)
 
 	tier_enterprise_compressed_data_used_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "tier_enterprise_compressed_data_used").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(tier_enterprise_compressed_data_used, prometheus.GaugeValue, float64(tier_enterprise_compressed_data_used_bytes), labelvalues...)
 
 	tier_nearline_compressed_data_used_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "tier_nearline_compressed_data_used").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(tier_nearline_compressed_data_used, prometheus.GaugeValue, float64(tier_nearline_compressed_data_used_bytes), labelvalues...)
 
 	total_reclaimable_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "total_reclaimable_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(total_reclaimable_capacity, prometheus.GaugeValue, float64(total_reclaimable_capacity_bytes), labelvalues...)
 
 	physical_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "physical_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(physical_capacity, prometheus.GaugeValue, float64(physical_capacity_bytes), labelvalues...)
 
 	physical_free_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "physical_free_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(physical_free_capacity, prometheus.GaugeValue, float64(physical_free_capacity_bytes), labelvalues...)
 
 	used_capacity_before_reduction_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "used_capacity_before_reduction").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(used_capacity_before_reduction, prometheus.GaugeValue, float64(used_capacity_before_reduction_bytes), labelvalues...)
 
 	used_capacity_after_reduction_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "used_capacity_after_reduction").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(used_capacity_after_reduction, prometheus.GaugeValue, float64(used_capacity_after_reduction_bytes), labelvalues...)
 
 	overhead_capacity_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "overhead_capacity").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(overhead_capacity, prometheus.GaugeValue, float64(overhead_capacity_bytes), labelvalues...)
 
 	deduplication_capacity_saving_bytes, err := utils.ToBytes(gjson.Get(systemMetrics, "deduplication_capacity_saving").String())
 	if err != nil {
-		log.Errorf("Converting capacity unit failed: %s", err)
+		logger.Errorf("Converting capacity unit failed: %s", err.Error())
 	}
 	ch <- prometheus.MustNewConstMetric(deduplication_capacity_saving, prometheus.GaugeValue, float64(deduplication_capacity_saving_bytes), labelvalues...)
 
 	tierArray := gjson.Get(systemMetrics, "tiers").Array()
 	for _, tier := range tierArray {
+		labelvalues_tier := []string{sClient.Hostname, tier.Get("tier").String()}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues_tier = append(labelvalues_tier, utils.ExtraLabelValues...)
+		}
 		tier_capacity_bytes, err := utils.ToBytes(tier.Get("tier_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), sClient.IpAddress, sClient.Hostname, tier.Get("tier").String())
+		ch <- prometheus.MustNewConstMetric(tier_capacity, prometheus.GaugeValue, float64(tier_capacity_bytes), labelvalues_tier...)
 
 		tier_free_capacity_bytes, err := utils.ToBytes(tier.Get("tier_free_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), sClient.IpAddress, sClient.Hostname, tier.Get("tier").String())
+		ch <- prometheus.MustNewConstMetric(tier_free_capacity, prometheus.GaugeValue, float64(tier_free_capacity_bytes), labelvalues_tier...)
 	}
 
 	physical_capacity_usage_value := float64(physical_capacity_bytes-physical_free_capacity_bytes-total_reclaimable_capacity_bytes) / float64(physical_capacity_bytes) * 100
@@ -392,60 +402,88 @@ func (c *systemCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	compression_savings := compression_uncompressed_capacity_bytes - compression_compressed_capacity_bytes + used_capacity_before_reduction_bytes - used_capacity_after_reduction_bytes + total_reclaimable_capacity_bytes
 	deduplication_savings := deduplication_capacity_saving_bytes
 	total_provisioned := total_vdiskcopy_capacity_bytes
-	reqMdiskURL := "https://" + sClient.IpAddress + ":7443/rest/lsmdisk"
-	mDiskResp, err := sClient.CallSpectrumAPI(reqMdiskURL)
+	mDiskResp, err := sClient.CallSpectrumAPI("lsmdisk", true)
 	if err != nil {
-		log.Errorf("Executing lsmdisk cmd failed: %s", err)
+		logger.Errorf("Executing lsmdisk cmd failed: %s", err.Error())
+		return err
 	}
-	log.Debugln("Response of lsmdisk: ", mDiskResp)
+	logger.Debugln("response of lsmdisk: ", mDiskResp)
+	/* 	This is a sample output of lsmdisk
+	[
+	    {
+	        "id": "0",
+	        "name": "mdisk0",
+	        "status": "online",
+	        "mode": "array",
+	        "mdisk_grp_id": "0",
+	        "mdisk_grp_name": "Pool0",
+	        "capacity": "99.1TB",
+	        "ctrl_LUN_#": "",
+	        "controller_name": "",
+	        "UID": "",
+	        "tier": "tier0_flash",
+	        "encrypt": "no",
+	        "site_id": "",
+	        "site_name": "",
+	        "distributed": "yes",
+	        "dedupe": "no",
+	        "over_provisioned": "yes",
+	        "supports_unmap": "yes"
+	    }
+	] */
+	if !gjson.Valid(mDiskResp) {
+		return fmt.Errorf("invalid json for lsmdisk: %v", mDiskResp)
+	}
 	mDisks := gjson.Parse(mDiskResp).Array()
 	var drive_thin_savings uint64
 	for _, mdisk := range mDisks {
 		mdisk_name := mdisk.Get("name").String()
-		reqMdiskDeatilURL := "https://" + sClient.IpAddress + ":7443/rest/lsmdisk/" + mdisk_name
-		mDiskDetailResp, err := sClient.CallSpectrumAPI(reqMdiskDeatilURL)
+		mDiskDetailResp, err := sClient.CallSpectrumAPI("lsmdisk/"+mdisk_name, true)
 		if err != nil {
-			log.Errorf("Executing lsmdisk/%s cmd failed: %s", mdisk_name, err)
+			logger.Errorf("Executing lsmdisk/%s cmd failed: %s", mdisk_name, err)
+			return err
 		}
-		log.Debugln("Response of lsmdisk/%s: ", mdisk_name, mDiskResp)
-
-		// {
-		// 	"id": "0",
-		// 	"name": "mdisk0",
-		// 	"status": "online",
-		// 	"mode": "array",
-		// 	"mdisk_grp_id": "0",
-		// 	"mdisk_grp_name": "Pool0",
-		// 	"capacity": "99.1TB",
-		// 	"redundancy": "2",
-		// 	"distributed": "yes",
-		// 	"drive_class_id": "0",
-		// 	"drive_count": "8",
-		// 	"dedupe": "no",
-		// 	"over_provisioned": "yes",
-		// 	"provisioning_group_id": "0",
-		// 	"physical_capacity": "42.90TB",
-		// 	"physical_free_capacity": "42.73TB",
-		// 	"write_protected": "no",
-		// 	"allocated_capacity": "7.13TB",
-		// 	"effective_used_capacity": "181.33GB"
-		// }
-
-		allocated_capapcity_bytes, err := utils.ToBytes(gjson.Get(mDiskDetailResp, "allocated_capacity").String())
-		effective_used_capacity_bytes, err := utils.ToBytes(gjson.Get(mDiskDetailResp, "effective_used_capacity").String())
+		logger.Debugln("response of lsmdisk/", mdisk_name, ": ", mDiskDetailResp)
+		/* This is a sample output of lsmdisk/mdisk0
+		{
+			"id": "0",
+			"name": "mdisk0",
+			"status": "online",
+			"mode": "array",
+			"mdisk_grp_id": "0",
+			"mdisk_grp_name": "Pool0",
+			"capacity": "99.1TB",
+			"redundancy": "2",
+			"distributed": "yes",
+			"drive_class_id": "0",
+			"drive_count": "8",
+			"dedupe": "no",
+			"over_provisioned": "yes",
+			"provisioning_group_id": "0",
+			"physical_capacity": "42.90TB",
+			"physical_free_capacity": "42.73TB",
+			"write_protected": "no",
+			"allocated_capacity": "7.13TB",
+			"effective_used_capacity": "181.33GB"
+		} */
+		if !gjson.Valid(mDiskDetailResp) {
+			return fmt.Errorf("invalid json for lscloudcallhome: %v", mDiskDetailResp)
+		}
+		allocated_capapcity_bytes, _ := utils.ToBytes(gjson.Get(mDiskDetailResp, "allocated_capacity").String())
+		effective_used_capacity_bytes, _ := utils.ToBytes(gjson.Get(mDiskDetailResp, "effective_used_capacity").String())
 		thin_saving := allocated_capapcity_bytes - effective_used_capacity_bytes
 		drive_thin_savings += thin_saving
 	}
 
 	written_capacity_with_FCMs := stored_capacity_logical + compression_savings + deduplication_savings - drive_thin_savings
-	log.Debugln("written_capacity_with_FCMs", written_capacity_with_FCMs)
+	logger.Debugln("written_capacity_with_FCMs", written_capacity_with_FCMs)
 	volume_capacity_usage_value := float64(written_capacity_with_FCMs) / float64(total_provisioned) * 100
-	log.Debugln("volume_capacity_usage_value", volume_capacity_usage_value)
+	logger.Debugln("volume_capacity_usage_value", volume_capacity_usage_value)
 	ch <- prometheus.MustNewConstMetric(volume_capacity_usage, prometheus.GaugeValue, volume_capacity_usage_value, labelvalues...)
 
 	mdiskgrp_capacity_usage_value := float64(total_mdisk_capacity_bytes-total_free_space_bytes-total_reclaimable_capacity_bytes) / float64(total_mdisk_capacity_bytes) * 100
 	ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity_usage, prometheus.GaugeValue, mdiskgrp_capacity_usage_value, labelvalues...)
 
-	log.Debugln("Leaving System collector.")
-	return err
+	logger.Debugln("exit System collector.")
+	return nil
 }

@@ -1,30 +1,46 @@
 package utils
 
 import (
-	"io/ioutil"
+	"os"
 
 	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
-	Targets []Targets `yaml:"targets"`
+	Targets         []Target        `yaml:"targets"`
+	ExtraLabels     []Label         `yaml:"extra_labels"`
+	TlsServerConfig TlsServerConfig `yaml:"tls_server_config"`
+	filename        string
 }
 
-type Targets struct {
+type Target struct {
 	IpAddress string `yaml:"ipAddress"`
 	Userid    string `yaml:"userid"`
 	Password  string `yaml:"password"`
 }
 
-//Load loads a config from filename
-func (cfg *Config) _Init(filename string) (*Config, error) {
+type Label struct {
+	Name  string `yaml:"name"`
+	Value string `yaml:"value"`
+}
 
-	content, err := ioutil.ReadFile(filename)
+type TlsServerConfig struct {
+	CaCert     string `yaml:"ca_cert"`
+	ServerCert string `yaml:"server_cert"`
+	ServerKey  string `yaml:"server_key"`
+}
+
+func (cfg *Config) SetFilename(filename string) {
+	cfg.filename = filename
+}
+
+// Load loads a config from filename
+func (cfg *Config) _Init() (*Config, error) {
+
+	content, err := os.ReadFile(cfg.filename)
 	if err != nil {
 		return nil, err
 	}
-
-	// cfg := New()
 
 	err = yaml.Unmarshal(content, cfg)
 	if err != nil {
@@ -34,8 +50,6 @@ func (cfg *Config) _Init(filename string) (*Config, error) {
 }
 func GetConfig(filename string) (*Config, error) {
 	var cfg Config
-	return cfg._Init(filename)
-}
-func setDefaultValues(c *Config) {
-
+	cfg.SetFilename(filename)
+	return cfg._Init()
 }

@@ -1,4 +1,4 @@
-package collector
+package collector_s
 
 import (
 	"fmt"
@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	prefix          = "spectrum_collector_"
+	prefix          = "spectrum_collector_s_"
 	defaultEnabled  = true
 	defaultDisabled = false
 )
@@ -69,19 +69,19 @@ func NewSVCCollector(targets []utils.Target, tokenCaches map[string]*utils.AuthT
 			labelnames = append(labelnames, utils.ExtraLabelNames...)
 		}
 		// metric name, help information, Array of defined label names, defined labels
-		scrapeDurationDesc = prometheus.NewDesc(prefix+"scrape_duration_seconds", "Duration of a collector scraping for one host", labelnames, nil)
-		authTokenRenewIntervalDesc = prometheus.NewDesc(prefix+"authtoken_renew_interval_seconds", "Interval of renewing auth token", labelnames, nil)
-		authTokenRenewSuccessDesc = prometheus.NewDesc(prefix+"authtoken_renew_success_total", "Cumulative count of success verification of renewed auth token", labelnames, nil)
-		authTokenRenewFailureDesc = prometheus.NewDesc(prefix+"authtoken_renew_failure_total", "Cumulative count of failed verification of renewed auth token", labelnames, nil)
+		scrapeDurationDesc = prometheus.NewDesc("spectrum_collector_scrape_duration_seconds", "Duration of a collector scraping for one host", labelnames, nil)
+		authTokenRenewIntervalDesc = prometheus.NewDesc("spectrum_collector_authtoken_renew_interval_seconds", "Interval of the last renewing auth token", labelnames, nil)
+		authTokenRenewSuccessDesc = prometheus.NewDesc("spectrum_collector_authtoken_renew_success_total", "Cumulative count of successful verification of renewed auth token", labelnames, nil)
+		authTokenRenewFailureDesc = prometheus.NewDesc("spectrum_collector_authtoken_renew_failure_total", "Cumulative count of failed verification of renewed auth token", labelnames, nil)
 
 		hosts = targets
 		collectors = make(map[string]Collector)
-		logger.Infof("enabled metrics collectors:")
+		logger.Infof("enabled setting collectors:")
 		for key, enabled := range collectorState {
 			if *enabled {
 				collector, err = factories[key]()
 				if err != nil {
-					logger.Errorln("failed to load metrics collector: ", key)
+					logger.Errorln("failed to load setting collector: ", key)
 					return
 				}
 				collectors[key] = collector
@@ -145,7 +145,7 @@ func (c *svcCollector) collectForHost(host utils.Target, ch chan<- prometheus.Me
 	counter, success = sClients[host.IpAddress].RenewAuthToken(true)
 
 	if success == 0 {
-		logger.Errorln("no valid auth token, skip executing metrics collectors")
+		logger.Errorln("no valid auth token, skip executing setting collectors")
 	} else {
 		for k, col := range collectors {
 			err := col.Collect(*spectrumClient, ch)
