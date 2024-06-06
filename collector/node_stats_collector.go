@@ -169,15 +169,14 @@ func (c *nodeStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- pro
 	// ]
 
 	nodeStatsArray := gjson.Parse(nodeStatsResp).Array()
+	nodesNumber := len(nodeStatsArray) / len(nodeStats_metrics)
+
 	for i, nodeStats_metric := range nodeStats_metrics {
-		labelvalues := []string{sClient.Hostname, nodeStatsArray[i].Get("node_name").String()}
-		labelvalues_a := []string{sClient.Hostname, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("node_name").String()}
-		if len(utils.ExtraLabelValues) > 0 {
-			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
-			labelvalues_a = append(labelvalues_a, utils.ExtraLabelValues...)
+		for node := 0; node < nodesNumber; node++ {
+			index := len(nodeStats_metrics)*node + i
+			labelvalues := []string{sClient.Hostname, nodeStatsArray[index].Get("node_name").String()}
+			ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[index].Get("stat_current").Float(), labelvalues...)
 		}
-		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[i].Get("stat_current").Float(), labelvalues...)
-		ch <- prometheus.MustNewConstMetric(nodeStats_metric, prometheus.GaugeValue, nodeStatsArray[len(nodeStatsArray)-len(nodeStats_metrics)+i].Get("stat_current").Float(), labelvalues_a...)
 	}
 	logger.Debugln("exit NodeStats collector")
 	return nil
