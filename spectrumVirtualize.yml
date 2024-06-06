@@ -2,4 +2,11 @@ targets:
   - ipAddress: IP address
     userid: user
     password: password
-
+    verifyCert: true
+extra_labels:
+  - name: pod_name
+    value: pod_value
+tls_server_config:
+  ca_cert: ./certs/ca-root.crt
+  server_cert: ./certs/server.crt
+  server_key: ./certs/server.key

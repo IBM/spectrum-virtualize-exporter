@@ -1,22 +1,8 @@
-### Exporter Metrics
+# Prometheus Exporter Metrics
 
-```
-# HELP spectrum_collector_duration_seconds Duration of a collector scrape for one resource
-# TYPE spectrum_collector_duration_seconds gauge
+## Metrics Definition
 
-# HELP spectrum_collector_success Scrape of resource was sucessful
-# TYPE spectrum_collector_success gauge
-
-# HELP spectrum_authtoken_cache_counter_hit Count of authtoken cache hits
-# TYPE spectrum_authtoken_cache_counter_hit counter
-
-# HELP spectrum_authtoken_cache_counter_miss Count of authtoken cache misses
-# TYPE spectrum_authtoken_cache_counter_miss counter
-
-
-# HELP spectrum_request_errors_total Errors in request to the Spectrum Virtualize Exporter
-# TYPE spectrum_request_errors_total counter
-
+```txt
 # HELP go_gc_duration_seconds A summary of the GC invocation durations.
 # TYPE go_gc_duration_seconds summary
 

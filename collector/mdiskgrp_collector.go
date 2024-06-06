@@ -4,7 +4,6 @@ import (
 	"strconv"
 
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -32,8 +31,18 @@ var (
 
 func init() {
 	registerCollector("lsmdiskgrp", defaultDisabled, NewMdiskgrpCollector)
-	labelnames := []string{"target", "resource", "name", "status"}
-	mdiskgrp_capacity = prometheus.NewDesc(prefix_mdiskgrp+"capacity", "The total amount of MDisk storage that is assigned to the storage pool..", labelnames, nil)
+}
+
+// mdiskgrpCollector collects mdisk metrics
+type mdiskgrpCollector struct {
+}
+
+func NewMdiskgrpCollector() (Collector, error) {
+	labelnames := []string{"resource", "name", "status"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	mdiskgrp_capacity = prometheus.NewDesc(prefix_mdiskgrp+"capacity", "The total amount of MDisk storage that is assigned to the storage pool.", labelnames, nil)
 	extent_size = prometheus.NewDesc(prefix_mdiskgrp+"extent_size", "The sizes of the extents for this group", labelnames, nil)
 	free_capacity = prometheus.NewDesc(prefix_mdiskgrp+"free_capacity", "The amount of MDisk storage that is immediately available. Additionally, reclaimable_capacity can eventually become available", labelnames, nil)
 	virtual_capacity = prometheus.NewDesc(prefix_mdiskgrp+"virtual_capacity", "The total host mappable capacity of all volume copies in the storage pool.", labelnames, nil)
@@ -50,17 +59,10 @@ func init() {
 	mdiskgrp_deduplication_capcacity_saving = prometheus.NewDesc(prefix_mdiskgrp+"deduplication_capcacity_saving", "The capacity that is saved by deduplication before compression in a data reduction pool.", labelnames, nil)
 	reclaimable_capacity = prometheus.NewDesc(prefix_mdiskgrp+"reclaimable_capacity", "The MDisk capacity that is reserved for internal usage.", labelnames, nil)
 
-}
-
-//mdiskgrpCollector collects mdisk metrics
-type mdiskgrpCollector struct {
-}
-
-func NewMdiskgrpCollector() (Collector, error) {
 	return &mdiskgrpCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*mdiskgrpCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- mdiskgrp_capacity
 	ch <- extent_size
@@ -80,16 +82,16 @@ func (*mdiskgrpCollector) Describe(ch chan<- *prometheus.Desc) {
 	ch <- reclaimable_capacity
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
 
-	log.Debugln("Entering MDiskgrp collector ...")
-	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsmdiskgrp"
-	mDiskGrpResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	logger.Debugln("entering MDiskgrp collector ...")
+	mDiskGrpResp, err := sClient.CallSpectrumAPI("lsmdiskgrp", true)
 	if err != nil {
-		log.Errorf("Executing lsmdiskgrp cmd failed: %s", err)
+		logger.Errorf("Executing lsmdiskgrp cmd failed: %s", err.Error())
+		return err
 	}
-	log.Debugln("Response of lsmdiskgrp: ", mDiskGrpResp)
+	logger.Debugln("response of lsmdiskgrp: ", mDiskGrpResp)
 	// This is a sample output of lsmdiskgrp
 	// 	[
 	//     {
@@ -132,104 +134,106 @@ func (c *mdiskgrpCollector) Collect(sClient utils.SpectrumClient, ch chan<- prom
 
 	mDiskGrpArray := gjson.Parse(mDiskGrpResp).Array()
 	for _, mdiskgrp := range mDiskGrpArray {
+		labelvalues := []string{sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String()}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
 		mdiskgrp_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity, prometheus.GaugeValue, float64(mdiskgrp_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_capacity, prometheus.GaugeValue, float64(mdiskgrp_capacity_bytes), labelvalues...)
 
 		extent_size_bytes, err := utils.ToBytes(mdiskgrp.Get("extent_size").String() + "MB")
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(extent_size, prometheus.GaugeValue, float64(extent_size_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(extent_size, prometheus.GaugeValue, float64(extent_size_bytes), labelvalues...)
 
 		free_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("free_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(free_capacity, prometheus.GaugeValue, float64(free_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(free_capacity, prometheus.GaugeValue, float64(free_capacity_bytes), labelvalues...)
 
 		virtual_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("virtual_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(virtual_capacity, prometheus.GaugeValue, float64(virtual_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(virtual_capacity, prometheus.GaugeValue, float64(virtual_capacity_bytes), labelvalues...)
 
 		used_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("used_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(used_capacity, prometheus.GaugeValue, float64(used_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(used_capacity, prometheus.GaugeValue, float64(used_capacity_bytes), labelvalues...)
 
 		real_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("real_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(real_capacity, prometheus.GaugeValue, float64(real_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(real_capacity, prometheus.GaugeValue, float64(real_capacity_bytes), labelvalues...)
 
 		overallocation_pc, err := strconv.ParseFloat(mdiskgrp.Get("overallocation").String(), 64)
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(overallocation, prometheus.GaugeValue, float64(overallocation_pc), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(overallocation, prometheus.GaugeValue, float64(overallocation_pc), labelvalues...)
 
 		mdiskgrp_compression_active_value, err := utils.ToBool(mdiskgrp.Get("compression_active").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_active, prometheus.GaugeValue, mdiskgrp_compression_active_value, sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_active, prometheus.GaugeValue, mdiskgrp_compression_active_value, labelvalues...)
 
 		mdiskgrp_compression_virtual_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("compression_virtual_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_virtual_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_virtual_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_virtual_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_virtual_capacity_bytes), labelvalues...)
 
 		mdiskgrp_compression_compressed_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("compression_compressed_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_compressed_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_compressed_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_compressed_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_compressed_capacity_bytes), labelvalues...)
 
 		mdiskgrp_compression_uncompressed_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("compression_uncompressed_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_uncompressed_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_uncompressed_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_compression_uncompressed_capacity, prometheus.GaugeValue, float64(mdiskgrp_compression_uncompressed_capacity_bytes), labelvalues...)
 
 		mdiskgrp_used_capacity_before_reduction_bytes, err := utils.ToBytes(mdiskgrp.Get("used_capacity_before_reduction").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_used_capacity_before_reduction, prometheus.GaugeValue, float64(mdiskgrp_used_capacity_before_reduction_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_used_capacity_before_reduction, prometheus.GaugeValue, float64(mdiskgrp_used_capacity_before_reduction_bytes), labelvalues...)
 
 		mdiskgrp_used_capacity_after_reduction_bytes, err := utils.ToBytes(mdiskgrp.Get("used_capacity_after_reduction").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_used_capacity_after_reduction, prometheus.GaugeValue, float64(mdiskgrp_used_capacity_after_reduction_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_used_capacity_after_reduction, prometheus.GaugeValue, float64(mdiskgrp_used_capacity_after_reduction_bytes), labelvalues...)
 
 		mdiskgrp_overhead_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("overhead_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_overhead_capacity, prometheus.GaugeValue, float64(mdiskgrp_overhead_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_overhead_capacity, prometheus.GaugeValue, float64(mdiskgrp_overhead_capacity_bytes), labelvalues...)
 
 		mdiskgrp_deduplication_capcacity_saving_bytes, err := utils.ToBytes(mdiskgrp.Get("deduplication_capacity_saving").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(mdiskgrp_deduplication_capcacity_saving, prometheus.GaugeValue, float64(mdiskgrp_deduplication_capcacity_saving_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
+		ch <- prometheus.MustNewConstMetric(mdiskgrp_deduplication_capcacity_saving, prometheus.GaugeValue, float64(mdiskgrp_deduplication_capcacity_saving_bytes), labelvalues...)
 
 		reclaimable_capacity_bytes, err := utils.ToBytes(mdiskgrp.Get("reclaimable_capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(reclaimable_capacity, prometheus.GaugeValue, float64(reclaimable_capacity_bytes), sClient.IpAddress, sClient.Hostname, mdiskgrp.Get("name").String(), mdiskgrp.Get("status").String())
-
+		ch <- prometheus.MustNewConstMetric(reclaimable_capacity, prometheus.GaugeValue, float64(reclaimable_capacity_bytes), labelvalues...)
 	}
-	log.Debugln("Leaving MDiskgrp collector.")
-	return err
-
+	logger.Debugln("exit MDiskgrp collector")
+	return nil
 }

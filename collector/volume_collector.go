@@ -2,7 +2,6 @@ package collector
 
 import (
 	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/common/log"
 	"github.com/tidwall/gjson"
 	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
@@ -15,34 +14,38 @@ var (
 
 func init() {
 	registerCollector("lsvdisk", defaultDisabled, NewVolumeCollector)
-	labelnames := []string{"target", "resource", "volume_id", "volume_name", "mdisk_grp_name"}
-	volumeCapacity = prometheus.NewDesc(prefix_volume+"capacity", "The virtual capacity of the volume that is the size of the volume as seen by the host.", labelnames, nil)
 }
 
-//volumeCollector collects vdisk metrics
+// volumeCollector collects vdisk metrics
 type volumeCollector struct {
 }
 
 func NewVolumeCollector() (Collector, error) {
+	labelnames := []string{"resource", "volume_id", "volume_name", "mdisk_grp_name"}
+	if len(utils.ExtraLabelNames) > 0 {
+		labelnames = append(labelnames, utils.ExtraLabelNames...)
+	}
+	volumeCapacity = prometheus.NewDesc(prefix_volume+"capacity", "The virtual capacity of the volume that is the size of the volume as seen by the host.", labelnames, nil)
+
 	return &volumeCollector{}, nil
 }
 
-//Describe describes the metrics
+// Describe describes the metrics
 func (*volumeCollector) Describe(ch chan<- *prometheus.Desc) {
 
 	ch <- volumeCapacity
 
 }
 
-//Collect collects metrics from Spectrum Virtualize Restful API
+// Collect collects metrics from Spectrum Virtualize Restful API
 func (c *volumeCollector) Collect(sClient utils.SpectrumClient, ch chan<- prometheus.Metric) error {
-	log.Debugln("Entering volume collector ...")
-	reqSystemURL := "https://" + sClient.IpAddress + ":7443/rest/lsvdisk"
-	volumeResp, err := sClient.CallSpectrumAPI(reqSystemURL)
+	logger.Debugln("entering volume collector ...")
+	volumeResp, err := sClient.CallSpectrumAPI("lsvdisk", true)
 	if err != nil {
-		log.Errorf("Executing lsvdisk cmd failed: %s", err)
+		logger.Errorf("Executing lsvdisk cmd failed: %s", err.Error())
+		return err
 	}
-	log.Debugln("Response of lsvdisk: ", volumeResp)
+	logger.Debugln("response of lsvdisk: ", volumeResp)
 	// This is a sample output of lsvdisk
 	// 	[
 	//     {
@@ -80,11 +83,14 @@ func (c *volumeCollector) Collect(sClient utils.SpectrumClient, ch chan<- promet
 	for _, volume := range volumeArray {
 		capacity_bytes, err := utils.ToBytes(volume.Get("capacity").String())
 		if err != nil {
-			log.Errorf("Converting capacity unit failed: %s", err)
+			logger.Errorf("Converting capacity unit failed: %s", err.Error())
 		}
-		ch <- prometheus.MustNewConstMetric(volumeCapacity, prometheus.GaugeValue, float64(capacity_bytes), sClient.IpAddress, sClient.Hostname, volume.Get("volume_id").String(), volume.Get("volume_name").String(), volume.Get("mdisk_grp_name").String())
+		labelvalues := []string{sClient.Hostname, volume.Get("volume_id").String(), volume.Get("volume_name").String(), volume.Get("mdisk_grp_name").String()}
+		if len(utils.ExtraLabelValues) > 0 {
+			labelvalues = append(labelvalues, utils.ExtraLabelValues...)
+		}
+		ch <- prometheus.MustNewConstMetric(volumeCapacity, prometheus.GaugeValue, float64(capacity_bytes), labelvalues...)
 	}
-	log.Debugln("Leaving volume collector.")
-	return err
-
+	logger.Debugln("exit volume collector")
+	return nil
 }

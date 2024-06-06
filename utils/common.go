@@ -7,8 +7,8 @@ import (
 	"unicode"
 )
 
-var invalidByteQuantityError = errors.New("byte quantity must be a positive integer with a unit of measurement like M, MB, MiB, G, GiB, or GB")
-var invalidBoolQuantityError = errors.New("bool quantity must be a string like ON, OFF, YES, NO")
+var errInvalidByteQuantity = errors.New("byte quantity must be a positive integer with a unit of measurement like M, MB, MiB, G, GiB, or GB")
+var errInvalidBoolQuantity = errors.New("bool quantity must be a string like ON, OFF, YES, NO")
 
 const (
 	BYTE = 1 << (10 * iota)
@@ -30,13 +30,13 @@ func ToBytes(s string) (uint64, error) {
 	i := strings.IndexFunc(s, unicode.IsLetter)
 
 	if i == -1 {
-		return 0, invalidByteQuantityError
+		return 0, errInvalidByteQuantity
 	}
 
 	bytesString, multiple := s[:i], s[i:]
 	bytes, err := strconv.ParseFloat(bytesString, 64)
 	if err != nil || bytes < 0 {
-		return 0, invalidByteQuantityError
+		return 0, errInvalidByteQuantity
 	}
 
 	switch multiple {
@@ -51,11 +51,11 @@ func ToBytes(s string) (uint64, error) {
 	case "B":
 		return uint64(bytes), nil
 	default:
-		return 0, invalidByteQuantityError
+		return 0, errInvalidByteQuantity
 	}
 }
 
-//ToBool parses a string formatted to bool, but prometheus only accepts float64 formatted data, so this function retuns float64 formatted.
+// ToBool parses a string formatted to bool, but prometheus only accepts float64 formatted data, so this function retuns float64 formatted.
 func ToBool(s string) (float64, error) {
 	s = strings.TrimSpace(s)
 	s = strings.ToUpper(s)
@@ -63,7 +63,7 @@ func ToBool(s string) (float64, error) {
 	i := strings.IndexFunc(s, unicode.IsLetter)
 
 	if i == -1 {
-		return -1, invalidBoolQuantityError
+		return -1, errInvalidBoolQuantity
 	}
 
 	switch s {
@@ -72,6 +72,6 @@ func ToBool(s string) (float64, error) {
 	case "OFF", "NO":
 		return 0, nil
 	default:
-		return -1, invalidBoolQuantityError
+		return -1, errInvalidBoolQuantity
 	}
 }
