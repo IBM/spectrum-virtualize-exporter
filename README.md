@@ -136,3 +136,35 @@ tls_server_config:
 * [IBM Spectrum Virtualize RESTful API For FS9xxx](https://www.ibm.com/support/knowledgecenter/en/STSLR9_8.2.0/com.ibm.fs9100_820.doc/rest_api_overview.html)
 
 * [IBM Spectrum Virtualize Interfacing Using the RESTful API](https://www.ibm.com/support/knowledgecenter/STVLF4_8.1.3/spectrum.virtualize.813.doc/Spectrum_Virtualize_API_8.1.3.pdf)
+
+## Contributing
+
+Third party contributions to this project are welcome!
+
+In order to contribute, create a [Git pull request](https://help.github.com/articles/using-pull-requests/), considering this:
+
+* Test is required.
+* Each commit should only contain one "logical" change.
+* A "logical" change should be put into one commit, and not split over multiple
+  commits.
+* Large new features should be split into stages.
+* The commit message should not only summarize what you have done, but explain
+  why the change is useful.
+* The commit message must follow the format explained below.
+
+What comprises a "logical" change is subject to sound judgement. Sometimes, it
+makes sense to produce a set of commits for a feature (even if not large).
+For example, a first commit may introduce a (presumably) compatible API change
+without exploitation of that feature. With only this commit applied, it should
+be demonstrable that everything is still working as before. The next commit may
+be the exploitation of the feature in other components.
+
+For further discussion of good and bad practices regarding commits, see:
+
+* [OpenStack Git Commit Good Practice](https://wiki.openstack.org/wiki/GitCommitMessages)
+
+* [How to Get Your Change Into the Linux Kernel](https://www.kernel.org/doc/Documentation/process/submitting-patches.rst)
+
+## License
+
+The spectrum-virtualize-exporter is licensed under the [Apache 2.0 License](https://github.com/IBM/spectrum-virtualize-exporter/blob/master/LICENSE).
