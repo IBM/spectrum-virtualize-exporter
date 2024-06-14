@@ -17,9 +17,9 @@ package collector
 import (
 	"strconv"
 
+	"github.com/IBM/spectrum-virtualize-exporter/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/tidwall/gjson"
-	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
 
 const prefix_mdiskgrp = "spectrum_mdiskgrp_"
