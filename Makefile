@@ -21,3 +21,9 @@ binary:
 
 docker: binary
 	docker build . -t $(PROJNAME):$(gitCommit)
+
+.PHONY: doc-build
+doc-build:
+	go doc utils
+	go doc collector
+	go doc collector_s
