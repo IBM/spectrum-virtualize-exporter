@@ -18,9 +18,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/IBM/spectrum-virtualize-exporter/utils"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/tidwall/gjson"
-	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 )
 
 const prefix_drive = "spectrum_drive_"

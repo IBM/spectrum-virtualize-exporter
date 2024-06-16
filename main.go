@@ -23,6 +23,9 @@ import (
 	"sync"
 	"time"
 
+	metricsCollector "github.com/IBM/spectrum-virtualize-exporter/collector"
+	settingsCollector "github.com/IBM/spectrum-virtualize-exporter/collector_s"
+	"github.com/IBM/spectrum-virtualize-exporter/utils"
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/prometheus/client_golang/prometheus"
@@ -30,9 +33,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/prometheus/common/log"
 	"github.com/prometheus/common/version"
-	metricsCollector "github.ibm.com/ZaaS/spectrum-virtualize-exporter/collector"
-	settingsCollector "github.ibm.com/ZaaS/spectrum-virtualize-exporter/collector_s"
-	"github.ibm.com/ZaaS/spectrum-virtualize-exporter/utils"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 

@@ -1,4 +1,4 @@
-module github.ibm.com/ZaaS/spectrum-virtualize-exporter
+module github.com/IBM/spectrum-virtualize-exporter
 
 go 1.22.4
 
