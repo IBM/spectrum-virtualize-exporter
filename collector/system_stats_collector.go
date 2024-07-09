@@ -163,8 +163,10 @@ func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- p
 
 	systemStats := gjson.Parse(systemStatsResp).Array()
 	for i, systemStat := range systemStats {
-		ch <- prometheus.MustNewConstMetric(metrics[i], prometheus.GaugeValue, systemStat.Get("stat_current").Float(), labelvalues...)
-
+		// ignore the fields greater than 49
+		if i < 49 {
+			ch <- prometheus.MustNewConstMetric(metrics[i], prometheus.GaugeValue, systemStat.Get("stat_current").Float(), labelvalues...)
+		}
 	}
 	logger.Debugln("exit SystemStats collector")
 	return nil
