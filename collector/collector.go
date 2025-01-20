@@ -108,6 +108,7 @@ func NewSVCCollector(targets []utils.Target, tokenCaches map[string]*utils.AuthT
 				UserName:       t.Userid,
 				Password:       t.Password,
 				IpAddress:      t.IpAddress,
+				VerifyCert:     t.VerifyCert,
 				AuthTokenCache: tokenCaches[t.IpAddress],
 				AuthTokenMutex: tokenMutexes[t.IpAddress],
 				ColCounter:     colCounters[t.IpAddress],
