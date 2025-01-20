@@ -28,9 +28,10 @@ type Config struct {
 }
 
 type Target struct {
-	IpAddress string `yaml:"ipAddress"`
-	Userid    string `yaml:"userid"`
-	Password  string `yaml:"password"`
+	IpAddress  string `yaml:"ipAddress"`
+	Userid     string `yaml:"userid"`
+	Password   string `yaml:"password"`
+	VerifyCert bool   `yaml:"verifyCert"`
 }
 
 type Label struct {
