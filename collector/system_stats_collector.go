@@ -26,7 +26,7 @@ const prefix_stats = "spectrum_systemstats_"
 
 var (
 	metricsPromDescMap map[string]*prometheus.Desc
-	metricsDescMap map[string]string
+	metricsDescMap map[string]string //update InitmetricsDescMap function for any new stat added in lssystemstats api rsp
 )
 
 type systemStatsCollector struct {
@@ -120,7 +120,7 @@ func NewSystemStatsCollector() (Collector, error) {
 	for statName, statDef := range metricsDescMap {
 		metricsPromDescMap[statName] = prometheus.NewDesc(prefix_stats+statName, statDef, labelnames, nil)
 	}
-
+	metricsDescMap = nil //ready for cleanup
 	return &systemStatsCollector{}, nil
 }
 
@@ -178,6 +178,7 @@ func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- p
 	for _, systemStat := range systemStats {
 
 		mrtricDesc, isExist := metricsPromDescMap[systemStat.Get("stat_name").String()]
+		//new stat will be ignored if not added in metricsDescMap
 		if isExist {
 			ch <- prometheus.MustNewConstMetric(mrtricDesc, prometheus.GaugeValue, systemStat.Get("stat_current").Float(), labelvalues...)
 		}
