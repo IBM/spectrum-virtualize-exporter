@@ -175,6 +175,7 @@ func (c *systemStatsCollector) Collect(sClient utils.SpectrumClient, ch chan<- p
 	}
 
 	systemStats := gjson.Parse(systemStatsResp).Array()
+
 	for _, systemStat := range systemStats {
 
 		mrtricDesc, isExist := metricsPromDescMap[systemStat.Get("stat_name").String()]
