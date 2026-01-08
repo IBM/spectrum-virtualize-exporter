@@ -67,6 +67,7 @@ The spectrum-virtualize-exporter loads the [./spectrumVirtualize.yml](spectrumVi
 * `targets.[].ipAddress`: IP address of the storage device.
 * `targets.[].userid`: Username to access the storage device.
 * `targets.[].password`: User password to access the storage device.
+* `targets.[].VerifyCert`: If value is set to false then Storage certificate will not be verified.
 
 ### Optionally settings
 
@@ -83,6 +84,7 @@ targets:
   - ipAddress: IP address
     userid: user
     password: password
+    VerifyCert: false
 extra_labels:
   - name: pod_name
     value: pod_value

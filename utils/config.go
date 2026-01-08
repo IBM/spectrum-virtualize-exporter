@@ -31,6 +31,7 @@ type Target struct {
 	IpAddress string `yaml:"ipAddress"`
 	Userid    string `yaml:"userid"`
 	Password  string `yaml:"password"`
+	VerifyCert bool  `yaml:"VerifyCert"`
 }
 
 type Label struct {
