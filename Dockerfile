@@ -23,8 +23,8 @@ RUN mkdir -p /etc/ssl/certs \
     && groupadd -g 1000 -r $APP_USER \
     && useradd -u 1000 -r -g $APP_USER -d /home/$APP_USER -m -s /bin/bash $APP_USER \
     && chown -R 1000:1000 /opt/spectrumVirtualize
-
 USER $APP_USER
+# port of prometheus exporter endpoint
 EXPOSE 9119
 ENTRYPOINT ["/opt/spectrumVirtualize/spectrum-virtualize-exporter"]
 CMD ["--config.file=/etc/spectrumVirtualize/spectrumVirtualize.yml"]
