@@ -9,7 +9,8 @@ require (
 	github.com/prometheus/common v0.26.0
 	github.com/tidwall/gjson v1.14.3
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
-	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
