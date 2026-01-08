@@ -1,4 +1,4 @@
-FROM ubuntu:jammy AS pem
+FROM ubuntu:noble AS pem
 RUN apt update && apt install curl -y
 WORKDIR /root/
 # The links of the IBM root CA and intermediate certs are from https://daymvs1.pok.ibm.com/ibmca/certificates.do;
@@ -9,7 +9,7 @@ RUN curl https://daymvs1.pok.ibm.com/ibmca/downloadCarootCert.do?file=carootcert
     openssl x509 -inform der -in caintermediatecert.der -out 02-caintermediatecert.pem
 
 
-FROM ubuntu:jammy
+FROM ubuntu:noble
 
 ARG APP_USER=spectrum
 
