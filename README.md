@@ -25,7 +25,7 @@ the [IBM SAN Volume Controller](https://www.ibm.com/us-en/marketplace/san-volume
   * Go compiler
 
 * Building:
-  
+
   * binary
 
     ```bash
@@ -162,8 +162,6 @@ be the exploitation of the feature in other components.
 For further discussion of good and bad practices regarding commits, see:
 
 * [OpenStack Git Commit Good Practice](https://wiki.openstack.org/wiki/GitCommitMessages)
-
-* [How to Get Your Change Into the Linux Kernel](https://www.kernel.org/doc/Documentation/process/submitting-patches.rst)
 
 ## License
 
