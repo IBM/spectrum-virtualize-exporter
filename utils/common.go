@@ -43,6 +43,11 @@ func ToBytes(s string) (uint64, error) {
 
 	i := strings.IndexFunc(s, unicode.IsLetter)
 
+	// Handling of zero value without any error
+	if s == "0" || s == "0.0" || s == "0.00" {
+		return 0, nil
+	}
+
 	if i == -1 {
 		return 0, errInvalidByteQuantity
 	}
