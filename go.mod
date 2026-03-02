@@ -1,6 +1,6 @@
 module github.com/IBM/spectrum-virtualize-exporter
 
-go 1.22.4
+go 1.24.13
 
 require (
 	github.com/gorilla/csrf v1.7.1
