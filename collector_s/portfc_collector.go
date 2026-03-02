@@ -22,7 +22,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_portfc = "spectrum_portfc_"
+const prefix_portfc = "portfc_"
 
 var (
 	portfc_status     *prometheus.Desc

@@ -22,7 +22,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_callhome = "spectrum_callhome_"
+const prefix_callhome = "callhome_"
 
 var callhomeInfo *prometheus.Desc
 

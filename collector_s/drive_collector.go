@@ -23,7 +23,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_drive = "spectrum_drive_"
+const prefix_drive = "drive_"
 
 var (
 	drive_status                     *prometheus.Desc

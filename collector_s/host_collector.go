@@ -22,7 +22,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_host = "spectrum_host_"
+const prefix_host = "host_"
 
 var (
 	host_status *prometheus.Desc

@@ -23,7 +23,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-const prefix_ip = "spectrum_ip_"
+const prefix_ip = "ip_"
 
 var (
 	ip_status *prometheus.Desc

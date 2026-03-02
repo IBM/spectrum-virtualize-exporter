@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	prefix          = "spectrum_collector_"
+	prefix          = "collector_"
 	defaultEnabled  = true
 	defaultDisabled = false
 )

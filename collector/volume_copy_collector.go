@@ -20,7 +20,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_volumeCopy = "spectrum_volume_copy"
+const prefix_volumeCopy = "volume_copy"
 
 var (
 	volumeCopy_Capacity *prometheus.Desc

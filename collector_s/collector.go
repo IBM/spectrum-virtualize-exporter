@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	prefix          = "spectrum_collector_s_"
+	prefix          = "collector_s_"
 	defaultEnabled  = true
 	defaultDisabled = false
 )
@@ -83,10 +83,10 @@ func NewSVCCollector(targets []utils.Target, tokenCaches map[string]*utils.AuthT
 			labelnames = append(labelnames, utils.ExtraLabelNames...)
 		}
 		// metric name, help information, Array of defined label names, defined labels
-		scrapeDurationDesc = prometheus.NewDesc("spectrum_collector_scrape_duration_seconds", "Duration of a collector scraping for one host", labelnames, nil)
-		authTokenRenewIntervalDesc = prometheus.NewDesc("spectrum_collector_authtoken_renew_interval_seconds", "Interval of the last renewing auth token", labelnames, nil)
-		authTokenRenewSuccessDesc = prometheus.NewDesc("spectrum_collector_authtoken_renew_success_total", "Cumulative count of successful verification of renewed auth token", labelnames, nil)
-		authTokenRenewFailureDesc = prometheus.NewDesc("spectrum_collector_authtoken_renew_failure_total", "Cumulative count of failed verification of renewed auth token", labelnames, nil)
+		scrapeDurationDesc = prometheus.NewDesc("collector_scrape_duration_seconds", "Duration of a collector scraping for one host", labelnames, nil)
+		authTokenRenewIntervalDesc = prometheus.NewDesc("collector_authtoken_renew_interval_seconds", "Interval of the last renewing auth token", labelnames, nil)
+		authTokenRenewSuccessDesc = prometheus.NewDesc("collector_authtoken_renew_success_total", "Cumulative count of successful verification of renewed auth token", labelnames, nil)
+		authTokenRenewFailureDesc = prometheus.NewDesc("collector_authtoken_renew_failure_total", "Cumulative count of failed verification of renewed auth token", labelnames, nil)
 
 		hosts = targets
 		collectors = make(map[string]Collector)

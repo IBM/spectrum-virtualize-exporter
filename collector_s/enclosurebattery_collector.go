@@ -22,7 +22,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_enclosurebattery = "spectrum_enclosurebattery_"
+const prefix_enclosurebattery = "enclosurebattery_"
 
 var (
 	battery_status              *prometheus.Desc

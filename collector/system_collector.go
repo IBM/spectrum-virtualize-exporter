@@ -23,7 +23,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_sys = "spectrum_system_"
+const prefix_sys = "system_"
 
 var (
 	total_mdisk_capacity                 *prometheus.Desc

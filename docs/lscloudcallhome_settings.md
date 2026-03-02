@@ -3,8 +3,8 @@
 ## Metrics Definition
 
 ```txt
-# HELP spectrum_callhome_info The status of the Call Home information.
-# TYPE spectrum_callhome_info gauge
+# HELP callhome_info The status of the Call Home information.
+# TYPE callhome_info gauge
 ```
 
 ## Metrics Value
@@ -16,5 +16,5 @@
 ## Sample Metrics
 
 ```txt
-spectrum_callhome_info{connection="active",resource="SARA-wdc04-03",status="enabled",target="172.16.64.20"} 0
+callhome_info{connection="active",resource="SARA-wdc04-03",status="enabled",target="172.16.64.20"} 0
 ```

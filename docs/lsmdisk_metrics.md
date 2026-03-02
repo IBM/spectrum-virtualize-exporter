@@ -1,6 +1,6 @@
 ### Managed Disks (MDisks) Metrics
 
 ```
-HELP spectrum_mdisk_capacity The capacity of the MDisk by pool 
-TYPE spectrum_mdisk_capacity gauge
+HELP mdisk_capacity The capacity of the MDisk by pool 
+TYPE mdisk_capacity gauge
 ```

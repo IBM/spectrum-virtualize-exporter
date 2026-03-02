@@ -22,7 +22,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_enclosurepsu = "spectrum_enclosurepsu_"
+const prefix_enclosurepsu = "enclosurepsu_"
 
 var (
 	psu_status *prometheus.Desc

@@ -22,7 +22,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_nodecanister = "spectrum_nodecanister_"
+const prefix_nodecanister = "nodecanister_"
 
 var (
 	nodecanister_status *prometheus.Desc

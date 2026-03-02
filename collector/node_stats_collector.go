@@ -20,7 +20,7 @@ import (
 	"github.com/tidwall/gjson"
 )
 
-const prefix_nodeStats = "spectrum_nodestats_"
+const prefix_nodeStats = "node_"
 
 var (
 	nodeStats_metrics map[string]*prometheus.Desc
