@@ -1,8 +1,8 @@
-FROM ubuntu:jammy AS pem
+FROM ubuntu:resolute AS pem
 WORKDIR /root/
 
 
-FROM ubuntu:jammy
+FROM ubuntu:resolute
 
 ARG APP_USER=spectrum
 
