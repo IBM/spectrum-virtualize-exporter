@@ -61,6 +61,10 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 	// A single session lasts a maximum of two active hours or thirty inactive minutes, whichever occurs first.
 	retVal := 0 // 0: failed, 1: success
 	if s.AuthTokenCache.Token != "" {
+		if s.Hostname == "" {
+			s.Hostname = s.AuthTokenCache.Hostname
+		}
+
 		if time.Since(s.AuthTokenCache.UpdateTime).Seconds() < 28 {
 			logger.Debugln("return existing token updated in 28s")
 			return *s.ColCounter, 1
@@ -82,9 +86,6 @@ func (s *SpectrumClient) RenewAuthToken(needVerify bool) (Counter, int) {
 				logger.Debugf("it's been %.0f minutes since the token update", updatePassedMins)
 			}
 			if retVal == 1 {
-				if s.Hostname == "" {
-					s.Hostname = s.AuthTokenCache.Hostname
-				}
 				logger.Debugf("return cached token updated in %.0f minutes", updatePassedMins)
 				return *s.ColCounter, retVal
 			}
