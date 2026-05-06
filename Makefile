@@ -19,7 +19,7 @@ binary:
 	go build -ldflags ${ldflags}
 	@echo "build done."
 
-docker: binary
+docker:
 	docker build . -t $(PROJNAME):$(gitCommit)
 
 .PHONY: doc-build
