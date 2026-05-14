@@ -4,7 +4,7 @@ go 1.22.4
 
 require (
 	github.com/gorilla/csrf v1.7.1
-	github.com/gorilla/mux v1.8.0
+	github.com/gorilla/mux v1.8.1
 	github.com/prometheus/client_golang v1.11.1
 	github.com/prometheus/common v0.26.0
 	github.com/tidwall/gjson v1.14.3
