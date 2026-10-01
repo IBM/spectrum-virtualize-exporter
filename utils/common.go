@@ -41,9 +41,22 @@ func ToBytes(s string) (uint64, error) {
 	s = strings.TrimSpace(s)
 	s = strings.ToUpper(s)
 
+	if s == "" {
+		return 0, nil
+	}
+
 	i := strings.IndexFunc(s, unicode.IsLetter)
 
-	// Handling of zero value without any error
+	// Handle zero values that may or may not include a unit, like "0", "0.0", "0.00", "0.00MB", "0B", etc.
+	if i != -1 {
+		numericPart := strings.TrimSpace(s[:i])
+		if numericPart != "" {
+			numValue, err := strconv.ParseFloat(numericPart, 64)
+			if err == nil && numValue == 0 {
+				return 0, nil
+			}
+		}
+	}
 	if s == "0" || s == "0.0" || s == "0.00" {
 		return 0, nil
 	}

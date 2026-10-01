@@ -1,0 +1,48 @@
+name: Publish Docker Image
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Build binary
+        run: |
+          LDFLAGS="-s -w \
+            -X github.com/prometheus/common/version.Version=${GITHUB_REF_NAME} \
+            -X github.com/prometheus/common/version.Revision=${GITHUB_SHA::8} \
+            -X github.com/prometheus/common/version.Branch=${GITHUB_REF_NAME} \
+            -X github.com/prometheus/common/version.BuildUser=github-actions \
+            -X github.com/prometheus/common/version.BuildDate=$(date -u +%FT%TZ)"
+          go build -ldflags "$LDFLAGS" -o spectrum-virtualize-exporter .
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}:latest

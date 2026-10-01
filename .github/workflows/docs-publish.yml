@@ -20,7 +20,6 @@ jobs:
 
       - name: Generate Documentation
         run: |
-          go get -u github.com/IBM/spectrum-virtualize-exporter
           go doc utils > docs.txt
           go doc collector >> docs.txt
           go doc collector_s >> docs.txt
