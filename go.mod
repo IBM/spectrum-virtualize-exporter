@@ -1,13 +1,13 @@
 module github.com/IBM/spectrum-virtualize-exporter
 
-go 1.22.4
+go 1.23
 
 require (
 	github.com/gorilla/csrf v1.7.1
 	github.com/gorilla/mux v1.8.0
 	github.com/prometheus/client_golang v1.11.1
 	github.com/prometheus/common v0.26.0
-	github.com/tidwall/gjson v1.14.3
+	github.com/tidwall/gjson v1.20.2
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.4.0
 )
@@ -26,7 +26,7 @@ require (
 	github.com/prometheus/procfs v0.6.0 // indirect
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
-	github.com/tidwall/pretty v1.2.1 // indirect
+	github.com/tidwall/pretty v1.3.0 // indirect
 	golang.org/x/sys v0.10.0 // indirect
 	google.golang.org/protobuf v1.33.0 // indirect
 )
