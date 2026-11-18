@@ -30,6 +30,7 @@ const (
 	MEGABYTE
 	GIGABYTE
 	TERABYTE
+	PETABYTE
 )
 
 // ToBytes parses a string formatted by ByteSize as bytes. Note binary-prefixed and SI prefixed units both mean a base-2 units
@@ -37,6 +38,7 @@ const (
 // MB = M = MiB = 1024 * K
 // GB = G = GiB = 1024 * M
 // TB = T = TiB = 1024 * G
+// PB = P = PiB = 1024 * T
 func ToBytes(s string) (uint64, error) {
 	s = strings.TrimSpace(s)
 	s = strings.ToUpper(s)
@@ -59,6 +61,11 @@ func ToBytes(s string) (uint64, error) {
 	}
 
 	switch multiple {
+	case "P", "PB", "PIB":
+		if bytes >= (1<<64)/PETABYTE {
+			return 0, errInvalidByteQuantity
+		}
+		return uint64(bytes * PETABYTE), nil
 	case "T", "TB", "TIB":
 		return uint64(bytes * TERABYTE), nil
 	case "G", "GB", "GIB":
